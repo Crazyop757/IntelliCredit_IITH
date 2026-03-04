@@ -66,3 +66,29 @@ logs/
 # Config secrets
 configs/secrets.*
 configs/*.secret.*
+
+# ML model cache (HuggingFace / PyTorch — can be hundreds of MB/GB)
+configs/model_cache/
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.ot
+*.onnx
+
+# Pipeline output files
+*.jsonl
+
+# Type-checking / linting caches
+.mypy_cache/
+.ruff_cache/
+.pytype/
+
+# Databricks Connect
+.databricks/
+databricks.yml
+
+# OS artefacts
+Thumbs.db
+*.DS_Store
+desktop.ini
