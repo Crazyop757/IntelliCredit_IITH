@@ -21,10 +21,14 @@ pip-delete-this-directory.txt
 *.ipynb_checkpoints
 
 # Data files
-data/raw/
-data/bronze/
-data/silver/
-data/gold/
+data/raw/*
+data/bronze/*
+data/silver/*
+data/gold/*
+!data/raw/.gitkeep
+!data/bronze/.gitkeep
+!data/silver/.gitkeep
+!data/gold/.gitkeep
 *.csv
 *.parquet
 *.json
@@ -34,7 +38,8 @@ data/gold/
 *.sqlite
 
 # Outputs
-outputs/
+outputs/*
+!outputs/.gitkeep
 
 # Environment variables
 .env
