@@ -67,7 +67,8 @@ logs/
 configs/secrets.*
 configs/*.secret.*
 
-# ML model cache (HuggingFace / PyTorch — can be hundreds of MB/GB)
+# Trained models & ML artifacts (can be hundreds of MB/GB)
+models/
 configs/model_cache/
 *.safetensors
 *.bin
@@ -75,6 +76,13 @@ configs/model_cache/
 *.pth
 *.ot
 *.onnx
+*.pkl
+*.pickle
+*.joblib
+*.npy
+*.npz
+*.h5
+*.hdf5
 
 # Pipeline output files
 *.jsonl
