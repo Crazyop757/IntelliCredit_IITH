@@ -1,4 +1,4 @@
-# Python
+# ─── Python ────────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *$py.class
@@ -16,11 +16,12 @@ ENV/
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Jupyter Notebooks
+# ─── Jupyter ────────────────────────────────────────────────────────────────
 .ipynb_checkpoints/
 *.ipynb_checkpoints
 
-# Data files
+# ─── Data lake ──────────────────────────────────────────────────────────────
+# Keep directory structure but ignore generated data
 data/raw/*
 data/bronze/*
 data/silver/*
@@ -29,45 +30,42 @@ data/gold/*
 !data/bronze/.gitkeep
 !data/silver/.gitkeep
 !data/gold/.gitkeep
+
+# Common data formats
 *.csv
 *.parquet
-*.json
 *.xlsx
 *.xls
 *.db
 *.sqlite
 
-# Outputs
+# Pipeline output files (JSONL can be large)
+*.jsonl
+
+# JSON data files everywhere EXCEPT raw seed/config files checked in intentionally
+# (override with git add -f <file> if you want to commit a specific JSON)
+data/**/*.json
+
+# ─── Outputs (generated CAM docs, reports, etc.) ────────────────────────────
 outputs/*
 !outputs/.gitkeep
 
-# Environment variables
+# ─── Environment / secrets ──────────────────────────────────────────────────
 .env
-.env.*
+.env.local
+.env.*.local
+# Keep the template
 !.env.example
 
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
-*.DS_Store
+# ─── API runtime ─────────────────────────────────────────────────────────────
+# uvicorn / gunicorn PID files
+*.pid
+# API key files
+api_key.txt
+secrets/
 
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-
-# Logs
-*.log
-logs/
-
-# Config secrets
-configs/secrets.*
-configs/*.secret.*
-
-# Trained models & ML artifacts (can be hundreds of MB/GB)
+# ─── ML models & artifacts ──────────────────────────────────────────────────
+# These can be hundreds of MB — store in DVC / object storage instead
 models/
 configs/model_cache/
 *.safetensors
@@ -84,19 +82,41 @@ configs/model_cache/
 *.h5
 *.hdf5
 
-# Pipeline output files
-*.jsonl
+# ─── IDEs ────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*.DS_Store
+Thumbs.db
+desktop.ini
 
-# Type-checking / linting caches
+# ─── Testing & coverage ──────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+nosetests.xml
+test-results/
+
+# ─── Linting / type-checking caches ─────────────────────────────────────────
 .mypy_cache/
 .ruff_cache/
 .pytype/
+.dmypy.json
 
-# Databricks Connect
+# ─── Logging ─────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ─── Databricks ──────────────────────────────────────────────────────────────
 .databricks/
 databricks.yml
 
-# OS artefacts
-Thumbs.db
+# ─── Config secrets ──────────────────────────────────────────────────────────
+configs/secrets.*
+configs/*.secret.*
 *.DS_Store
 desktop.ini

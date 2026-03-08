@@ -378,6 +378,44 @@ class PDFParser:
                 ) from exc
             raise
 
+        # ------------------------------------------------------------------
+        # Pre-scan: if the PDF appears fully scanned (first page empty),
+        # check for a pre-extracted sidecar .txt file before doing page-by-page
+        # OCR.  This is the recommended way to handle large scanned PDFs where
+        # Tesseract is unavailable (manually OCR once and save as .txt).
+        # ------------------------------------------------------------------
+        sidecar_path = pdf_path.with_suffix(".txt")
+        with pdf:
+            first_page_text = self._extract_digital_text(pdf.pages[0]) if pdf.pages else ""
+
+        if len(first_page_text) < self.digital_char_threshold and sidecar_path.exists():
+            logger.info(
+                "PDF appears scanned; loading pre-extracted sidecar: %s",
+                sidecar_path.name,
+            )
+            raw_text = sidecar_path.read_text(encoding="utf-8", errors="replace")
+            doc_type           = _classify_document(raw_text)
+            company_name_guess = _guess_company_name(raw_text)
+            page_count = len(pdfplumber.open(str(pdf_path)).pages)
+            return ExtractionResult(
+                doc_type           = doc_type,
+                company_name_guess = company_name_guess,
+                pages_processed    = 0,   # sidecar — no page-by-page processing
+                raw_text           = raw_text,
+                tables             = [],
+                metadata           = {
+                    "page_count":            page_count,
+                    "is_scanned":            True,
+                    "digital_pages":         0,
+                    "scanned_pages":         page_count,
+                    "extraction_confidence": round(min(len(raw_text) / 1000, 1.0), 3),
+                    "pdf_path":              str(pdf_path),
+                    "sidecar_txt":           str(sidecar_path),
+                    "ocr_lang":              None,
+                },
+            ).to_dict()
+
+        pdf = pdfplumber.open(str(pdf_path))
         with pdf:
             total_pages   = len(pdf.pages)
             pages_to_parse = (

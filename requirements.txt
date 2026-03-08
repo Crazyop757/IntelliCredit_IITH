@@ -1,0 +1,47 @@
+# ── Core web framework ────────────────────────────────────────────────────────
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9       # multipart/form-data file uploads
+aiofiles>=23.2.1
+
+# ── Settings management ───────────────────────────────────────────────────────
+pydantic>=2.7.0
+pydantic-settings>=2.3.0
+
+# ── ML / scoring ─────────────────────────────────────────────────────────────
+lightgbm>=4.3.0
+shap>=0.45.0
+torch>=2.2.0
+torch-geometric>=2.5.0
+transformers>=4.40.0
+scikit-learn>=1.4.0
+
+# ── Data processing ───────────────────────────────────────────────────────────
+pandas>=2.2.0
+numpy>=1.26.0
+openpyxl>=3.1.2               # Excel bank statements
+
+# ── Document processing ───────────────────────────────────────────────────────
+pdfplumber>=0.11.0
+pytesseract>=0.3.10
+Pillow>=10.3.0
+python-docx>=1.1.0
+reportlab>=4.2.0
+
+# ── LangGraph / Claude agent ──────────────────────────────────────────────────
+anthropic>=0.29.0
+langgraph>=0.1.0
+langchain-core>=0.2.0
+langchain-anthropic>=0.1.0
+
+# ── Graph / network analysis ──────────────────────────────────────────────────
+networkx>=3.3
+
+# ── Utilities ─────────────────────────────────────────────────────────────────
+python-dateutil>=2.9.0
+requests>=2.32.0
+httpx>=0.27.0                 # async HTTP for tools
+
+# ── Delta Lake (optional — falls back to local parquet) ───────────────────────
+# delta-spark>=3.0.0
+# pyspark>=3.5.0
