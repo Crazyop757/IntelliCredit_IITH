@@ -1,3 +1,13 @@
+---
+title: FinSight
+emoji: 📊
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # Intelli-Credit
 
 AI-powered credit analysis platform that combines ML scoring, NLP document extraction, graph-based fraud detection, and LLM-driven research to produce comprehensive Credit Approval Memorandums (CAMs).
