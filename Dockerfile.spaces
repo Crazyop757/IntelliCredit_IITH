@@ -1,0 +1,54 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Intelli-Credit — Single-container Dockerfile for Hugging Face Spaces
+# Serves both the FastAPI backend AND the built frontend via FastAPI static files
+# ═══════════════════════════════════════════════════════════════════════════
+
+# ── Stage 1: Build frontend ──────────────────────────────────────────────
+FROM node:18-alpine AS frontend-build
+WORKDIR /app
+
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci --no-audit
+
+COPY frontend/ .
+ENV VITE_API_URL=/api/v1
+ENV VITE_API_KEY=dev-key-change-in-production
+RUN npm run build
+
+# ── Stage 2: Python backend + serve frontend static files ────────────────
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    tesseract-ocr \
+    libgl1 \
+    libglib2.0-0 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application
+COPY src/ src/
+COPY models/ models/
+COPY configs/ configs/
+COPY scripts/ scripts/
+COPY run_api.py .
+COPY .env.example .env.example
+
+# Copy built frontend
+COPY --from=frontend-build /app/dist /app/frontend_dist
+
+# Create directories
+RUN mkdir -p data/raw data/bronze data/silver data/gold outputs/cam_reports
+
+# HF Spaces requires port 7860
+ENV PORT=7860
+EXPOSE 7860
+
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+    CMD curl -f http://localhost:7860/health || exit 1
+
+CMD ["python", "run_api.py", "--workers", "1", "--log-level", "warning"]

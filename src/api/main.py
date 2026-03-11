@@ -12,6 +12,7 @@ from __future__ import annotations
 import logging
 import sys
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, Request, status
@@ -150,15 +151,35 @@ Poll `GET .../jobs/{job_id}` until `status == "DONE"`.
     app.include_router(companies_router, prefix=API_PREFIX)
     app.include_router(analysis_router, prefix=API_PREFIX)
 
-    # Root redirect to docs
-    @app.get("/", include_in_schema=False)
-    async def root() -> dict[str, Any]:
-        return {
-            "service": "intelli-credit-api",
-            "version": "1.0.0",
-            "docs": "/docs",
-            "health": "/health",
-        }
+    # ── Serve built frontend if present (single-container deployment) ─────
+    frontend_dir = Path("frontend_dist")
+    if frontend_dir.is_dir():
+        from fastapi.staticfiles import StaticFiles
+        from fastapi.responses import FileResponse
+
+        @app.get("/", include_in_schema=False)
+        async def serve_index():
+            return FileResponse(frontend_dir / "index.html")
+
+        # Catch-all for SPA client-side routing (must be after API routes)
+        @app.get("/{full_path:path}", include_in_schema=False)
+        async def serve_spa(full_path: str):
+            file_path = frontend_dir / full_path
+            if file_path.is_file():
+                return FileResponse(file_path)
+            return FileResponse(frontend_dir / "index.html")
+
+        log.info("Frontend static files served from %s", frontend_dir.resolve())
+    else:
+        # No frontend build — just show API info at root
+        @app.get("/", include_in_schema=False)
+        async def root() -> dict[str, Any]:
+            return {
+                "service": "intelli-credit-api",
+                "version": "1.0.0",
+                "docs": "/docs",
+                "health": "/health",
+            }
 
     return app
 
