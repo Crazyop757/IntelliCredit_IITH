@@ -40,6 +40,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY src/ src/
 COPY models/pipeline_models.py models/pipeline_models.py
+COPY models/gnn_fraud_detector.pt models/gnn_fraud_detector.pt
 COPY scripts/ scripts/
 COPY run_api.py .
 COPY .env.example .env.example
