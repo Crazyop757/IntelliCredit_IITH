@@ -20,11 +20,12 @@ const arcPath = (cx: number, cy: number, r: number, startDeg: number, endDeg: nu
   return `M ${s.x.toFixed(2)} ${s.y.toFixed(2)} A ${r} ${r} 0 ${large} 0 ${e.x.toFixed(2)} ${e.y.toFixed(2)}`
 }
 
+// 5 equal zones of 36° each across a 180° semicircle
 const zones = [
-  { from: 180, to: 126, color: '#DC2626', label: 'High Risk' },
-  { from: 126, to: 90,  color: '#F97316', label: 'Elevated' },
-  { from: 90,  to: 54,  color: '#EAB308', label: 'Moderate' },
-  { from: 54,  to: 36,  color: '#22C55E', label: 'Low Risk' },
+  { from: 180, to: 144, color: '#DC2626', label: 'High Risk' },
+  { from: 144, to: 108, color: '#F97316', label: 'Elevated' },
+  { from: 108, to: 72,  color: '#EAB308', label: 'Moderate' },
+  { from: 72,  to: 36,  color: '#22C55E', label: 'Low Risk' },
   { from: 36,  to: 0,   color: '#0D9488', label: 'Prime' },
 ]
 
@@ -58,9 +59,9 @@ export default function RiskGauge({ score, size = 200, showLabel = true, classNa
   return (
     <div className={`flex flex-col items-center ${className}`}>
       <svg
-        viewBox="0 0 200 110"
+        viewBox="0 0 200 120"
         width={size}
-        height={size * 0.55}
+        height={size * 0.6}
         aria-label={`Risk score ${score.toFixed(1)}`}
       >
         {/* Background track */}
@@ -130,12 +131,12 @@ export default function RiskGauge({ score, size = 200, showLabel = true, classNa
         {/* Center dot */}
         <circle cx={cx} cy={cy} r={6} fill="#0D1117" stroke="#334155" strokeWidth={2} />
 
-        {/* Score text */}
+        {/* Score text — rendered below the arc baseline in the added viewBox space */}
         {showLabel && (
           <>
             <text
               x={cx}
-              y={cy - 18}
+              y={112}
               textAnchor="middle"
               fill="#FFFFFF"
               fontSize="20"
@@ -146,13 +147,13 @@ export default function RiskGauge({ score, size = 200, showLabel = true, classNa
             </text>
             <text
               x={cx}
-              y={cy - 4}
+              y={120}
               textAnchor="middle"
               fill={riskColor}
-              fontSize="8"
+              fontSize="7.5"
               fontWeight="600"
               fontFamily="Inter, sans-serif"
-              letterSpacing="0.08em"
+              letterSpacing="0.1em"
             >
               {riskLabel}
             </text>
@@ -160,9 +161,9 @@ export default function RiskGauge({ score, size = 200, showLabel = true, classNa
         )}
 
         {/* Scale labels: left=risky(10), right=safe(0) */}
-        <text x="10" y="107" fill="#94A3B8" fontSize="8" fontFamily="Inter, sans-serif">10</text>
-        <text x="183" y="107" fill="#94A3B8" fontSize="8" fontFamily="Inter, sans-serif">0</text>
-        <text x="96" y="18" fill="#94A3B8" fontSize="8" fontFamily="Inter, sans-serif">5</text>
+        <text x="10" y="103" fill="#94A3B8" fontSize="7.5" fontFamily="Inter, sans-serif">10</text>
+        <text x="184" y="103" fill="#94A3B8" fontSize="7.5" fontFamily="Inter, sans-serif">0</text>
+        <text x="96" y="18" fill="#94A3B8" fontSize="7.5" fontFamily="Inter, sans-serif">5</text>
       </svg>
     </div>
   )

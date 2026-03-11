@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Convenience launcher for the Intelli-Credit FastAPI backend.
+Convenience launcher for the FinSight FastAPI backend.
 
 Usage:
     python run_api.py                  # default port 8000
@@ -14,12 +14,17 @@ import argparse
 import os
 import sys
 
+# Force UTF-8 output on Windows to avoid cp1252 emoji encoding errors
+if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')  # type: ignore
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')  # type: ignore
+
 
 def main() -> None:
     # Render.com (and other PaaS) set PORT env var; respect it as fallback
     default_port = int(os.environ.get("PORT", "8000"))
 
-    parser = argparse.ArgumentParser(description="Run the Intelli-Credit API server")
+    parser = argparse.ArgumentParser(description="Run the FinSight API server")
     parser.add_argument("--host", default="0.0.0.0", help="Bind host (default: 0.0.0.0)")
     parser.add_argument("--port", type=int, default=default_port, help="Port (default: 8000 or $PORT)")
     parser.add_argument("--reload", action="store_true", help="Enable hot-reload (dev mode)")
@@ -34,7 +39,7 @@ def main() -> None:
         sys.exit(1)
 
     print(f"\n{'='*60}")
-    print(f"  Intelli-Credit API")
+    print(f"  FinSight API")
     print(f"  http://{args.host}:{args.port}")
     print(f"  Docs -> http://localhost:{args.port}/docs")
     print(f"{'='*60}\n")

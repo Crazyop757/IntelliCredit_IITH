@@ -1,6 +1,6 @@
 """
 API-level settings — read from environment / .env.
-All env vars are prefixed with  INTELLI_
+All env vars are prefixed with  FINSIGHT_
 """
 from __future__ import annotations
 
@@ -8,13 +8,13 @@ import os
 from pathlib import Path
 from typing import List
 
-from pydantic import field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class APISettings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_prefix="INTELLI_",
+        env_prefix="FINSIGHT_",
         env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
@@ -27,12 +27,12 @@ class APISettings(BaseSettings):
     disable_auth: bool = False
 
     # ── CORS ───────────────────────────────────────────────────────────
-    # Override in production via INTELLI_CORS_ORIGINS env var (JSON list)
+    # Override in production via FINSIGHT_CORS_ORIGINS env var (JSON list)
     cors_origins: List[str] = [
         "http://localhost:3000",
         "http://localhost:8501",
         "http://localhost:8000",
-        "https://intelli-credit-frontend.onrender.com",
+        "https://finsight-frontend.onrender.com",
     ]
 
     # ── Server ─────────────────────────────────────────────────────────
@@ -48,8 +48,20 @@ class APISettings(BaseSettings):
     data_dir: Path = Path("data")
 
     # ── Upstream integration ───────────────────────────────────────────
-    anthropic_api_key: str = ""
-    tavily_api_key: str = ""
+    # AliasChoices lets pydantic-settings accept BOTH the prefixed name
+    # (FINSIGHT_ANTHROPIC_API_KEY) AND the plain name (ANTHROPIC_API_KEY).
+    anthropic_api_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("FINSIGHT_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY"),
+    )
+    tavily_api_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("FINSIGHT_TAVILY_API_KEY", "TAVILY_API_KEY"),
+    )
+    serpapi_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("FINSIGHT_SERPAPI_KEY", "SERPAPI_KEY"),
+    )
 
     # ── Background workers ─────────────────────────────────────────
     # Max threads in the executor for sync-heavy pipeline tasks
@@ -61,6 +73,15 @@ class APISettings(BaseSettings):
     max_pdf_size: int = 50 * 1024 * 1024     # 50 MB
     max_bank_csv_size: int = 10 * 1024 * 1024  # 10 MB
     max_gst_json_size: int = 5 * 1024 * 1024   # 5 MB
+
+    # ── Supabase ───────────────────────────────────────────────────
+    supabase_url: str = ""
+    supabase_anon_key: str = ""
+    supabase_service_role_key: str = ""
+    supabase_jwt_secret: str = ""
+
+    # ── Environment ────────────────────────────────────────────────
+    env: str = "development"
 
     @field_validator("outputs_dir", "data_dir", mode="before")
     @classmethod

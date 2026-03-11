@@ -14,7 +14,7 @@ import CompanyHeader from '../components/shared/CompanyHeader'
 export default function LiveAnalysis() {
   const navigate = useNavigate()
   const { job_id, company, recordResults } = useSession()
-  const { job, isComplete, isFailed, isError } = usePipeline(job_id)
+  const { job, isComplete, isFailed, isError, isRunning } = usePipeline(job_id)
 
   useEffect(() => {
     if (isComplete && job?.result) {
@@ -37,8 +37,11 @@ export default function LiveAnalysis() {
     )
   }
 
-  const logLines: string[] = job?.stages
-    ? job.stages.flatMap((s) => {
+  // Prefer live server logs; fall back to stage-derived lines when no live logs yet
+  const liveLogs = job?.live_logs ?? []
+  const logLines: string[] = liveLogs.length > 0
+    ? liveLogs
+    : (job?.stages ?? []).flatMap((s) => {
         const lines: string[] = []
         if (s.started_at) lines.push(`[${new Date(s.started_at).toLocaleTimeString()}] Starting: ${s.stage_name ?? s.name}`)
         if (s.output_snippet ?? s.message) lines.push(`  → ${s.output_snippet ?? s.message}`)
@@ -46,10 +49,9 @@ export default function LiveAnalysis() {
         if (s.status === 'failed') lines.push(`  ✗ Failed`)
         return lines
       })
-    : []
 
   return (
-    <div className="max-w-4xl mx-auto space-y-5">
+    <div className="max-w-5xl mx-auto space-y-5">
       {company && <CompanyHeader company={company} subtitle="Running AI Credit Analysis Pipeline" />}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -108,8 +110,8 @@ export default function LiveAnalysis() {
         </div>
       </div>
 
-      {/* Live log */}
-      <LiveLog lines={logLines} />
+      {/* Live log — full width below grid */}
+      <LiveLog lines={logLines} isRunning={isRunning} />
     </div>
   )
 }

@@ -321,6 +321,7 @@ export interface PipelineJob {
   current_stage: string
   progress_pct: number
   stages: PipelineStage[]
+  live_logs?: string[]
   result?: FullPipelineResult
   error?: string
 }
@@ -329,6 +330,7 @@ export interface PipelineJob {
 
 export interface SessionState {
   session_id: string | null
+  owner_user_id: string | null
   company: Company | null
   job_id: string | null
   pipeline_status: PipelineJob | null
@@ -337,6 +339,7 @@ export interface SessionState {
   last_appraised_at: string | null
   qualitative_data: QualitativeFormData | null
   setSession: (id: string) => void
+  setOwnerUserId: (id: string | null) => void
   setCompany: (c: Company) => void
   setJobId: (id: string) => void
   setPipelineStatus: (s: PipelineJob) => void

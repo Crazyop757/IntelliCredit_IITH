@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 from typing import Any, List, Optional
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query, Request, status
 
 from src.api.dependencies import AuthDep, run_in_thread
 
@@ -23,9 +23,34 @@ log = logging.getLogger(__name__)
     "",
     summary="List companies that have data in the Delta Lake",
 )
-async def list_companies(_auth: AuthDep) -> dict[str, Any]:
+async def list_companies(_auth: AuthDep, request: Request) -> dict[str, Any]:
+    # Try to resolve the authenticated user from Bearer JWT
+    user_id: str | None = None
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        try:
+            from src.database.supabase_client import get_supabase_admin_client
+            _admin = get_supabase_admin_client()
+            if _admin:
+                _resp = _admin.auth.get_user(auth_header.split(" ", 1)[1])
+                if _resp.user:
+                    user_id = str(_resp.user.id)
+        except Exception as _jwt_exc:
+            log.debug("JWT resolve failed (non-fatal): %s", _jwt_exc)
+
+    if user_id:
+        # Serve rich data straight from the Supabase appraisals table
+        def _from_supabase() -> dict[str, Any]:
+            from src.database.appraisal_repository import AppraisalRepository
+            rows = AppraisalRepository().list_appraisals(user_id=user_id, limit=200)
+            return {"companies": rows, "total": len(rows)}
+        try:
+            return await run_in_thread(_from_supabase)
+        except Exception as exc:
+            log.warning("Supabase list failed, falling back to disk scan: %s", exc)
+
+    # Fallback: scan local data lake directories
     try:
-        from src.ingestor.delta_writer import DeltaWriter
         result = await run_in_thread(_list_companies_sync)
     except Exception as exc:
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, str(exc))

@@ -6,7 +6,7 @@
 services:
   # ── Backend API (Free Web Service) ─────────────────────────────────────
   - type: web
-    name: intelli-credit-api
+    name: finsight-backend
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt
@@ -15,14 +15,22 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.9"
-      - key: INTELLI_API_KEY
+      - key: FINSIGHT_API_KEY
         sync: false  # prompts you to set it in Render dashboard
-      - key: INTELLI_DISABLE_AUTH
+      - key: FINSIGHT_DISABLE_AUTH
         value: "false"
-      - key: INTELLI_HOST
+      - key: FINSIGHT_HOST
         value: "0.0.0.0"
-      - key: INTELLI_DEBUG
+      - key: FINSIGHT_DEBUG
         value: "false"
+      - key: FINSIGHT_SUPABASE_URL
+        sync: false
+      - key: FINSIGHT_SUPABASE_ANON_KEY
+        sync: false
+      - key: FINSIGHT_SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: FINSIGHT_SUPABASE_JWT_SECRET
+        sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: TAVILY_API_KEY
@@ -30,7 +38,7 @@ services:
 
   # ── Frontend (Free Static Site) ────────────────────────────────────────
   - type: web
-    name: intelli-credit-frontend
+    name: finsight-frontend
     runtime: static
     plan: free
     buildCommand: cd frontend && npm ci && npm run build
@@ -39,12 +47,25 @@ services:
       - path: /*
         name: Cache-Control
         value: public, max-age=3600
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
     routes:
       - type: rewrite
         source: /*
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        value: https://intelli-credit-api.onrender.com/api/v1
+        value: https://finsight-backend.onrender.com/api/v1
       - key: VITE_API_KEY
+        sync: false
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
         sync: false

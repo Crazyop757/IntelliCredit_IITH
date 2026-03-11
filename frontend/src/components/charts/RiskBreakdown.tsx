@@ -103,7 +103,7 @@ export default function RiskBreakdown({ riskFactors, totalScore }: RiskBreakdown
         <div className="relative">
           {total > 0 ? (
             <ResponsiveContainer width="100%" height={240}>
-              <PieChart>
+              <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                 <Pie
                   data={data}
                   cx="50%"
@@ -133,12 +133,13 @@ export default function RiskBreakdown({ riskFactors, totalScore }: RiskBreakdown
             </div>
           )}
 
-          {/* Center Label */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-text-primary">{total}</div>
-              <div className="text-xs text-text-muted">Factors</div>
-            </div>
+          {/* Center Label — absolutely positioned at the donut center */}
+          <div
+            className="absolute pointer-events-none text-center"
+            style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
+          >
+            <div className="text-3xl font-bold text-text-primary leading-none">{total}</div>
+            <div className="text-xs text-text-muted mt-0.5">Factors</div>
           </div>
         </div>
 
@@ -164,7 +165,7 @@ export default function RiskBreakdown({ riskFactors, totalScore }: RiskBreakdown
                 <div className="flex items-center justify-between mb-1">
                   <div className="text-sm font-semibold text-text-primary">{category.name}</div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-text-secondary">{category.value}</span>
+                    <span className="text-xs font-medium text-text-secondary w-4 text-right tabular-nums">{category.value}</span>
                     <div className="w-16 h-1.5 bg-border-dark rounded-full overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}

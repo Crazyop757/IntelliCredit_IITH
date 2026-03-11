@@ -33,6 +33,7 @@ class Job:
         "meta",
         "progress_pct",
         "current_stage",
+        "live_logs",
     )
 
     def __init__(self, job_type: str, meta: dict[str, Any] | None = None):
@@ -46,6 +47,7 @@ class Job:
         self.meta: dict[str, Any] = meta or {}
         self.progress_pct: int = 0
         self.current_stage: str = ""
+        self.live_logs: list[str] = []
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -59,6 +61,7 @@ class Job:
             "meta": self.meta,
             "progress_pct": self.progress_pct,
             "current_stage": self.current_stage,
+            "live_logs": list(self.live_logs),
         }
 
 
@@ -106,6 +109,13 @@ class JobStore:
         if job:
             job.progress_pct = pct
             job.current_stage = stage
+            job.updated_at = datetime.now(timezone.utc)
+
+    def append_log(self, job_id: str, msg: str) -> None:
+        """Append a log line for live streaming (GIL-safe list.append)."""
+        job = self._store.get(job_id)
+        if job and msg:
+            job.live_logs.append(msg)
             job.updated_at = datetime.now(timezone.utc)
 
     def _evict_if_needed(self) -> None:

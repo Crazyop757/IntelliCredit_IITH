@@ -6,6 +6,7 @@
  */
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -41,6 +42,7 @@ import { downloadFile } from '../api/client'
 import { useDownload } from '../hooks/useDownload'
 import { usePipeline } from '../hooks/usePipeline'
 import { useSession } from '../hooks/useSession'
+import { useAuthStore } from '../store/authStore'
 import {
   PIPELINE_STAGES,
   QUALITATIVE_CAPACITY_BRACKETS, FACILITY_CONDITION_ADJUSTMENTS,
@@ -405,7 +407,7 @@ function AnalysisSection({
   onComplete: () => void
   onFailed: () => void
 }) {
-  const { job, isComplete, isFailed } = usePipeline(jobId)
+  const { job, isComplete, isFailed, isRunning } = usePipeline(jobId)
   const { recordResults } = useSession()
   const called = useRef(false)
 
@@ -423,14 +425,17 @@ function AnalysisSection({
 
   const progress = job?.progress_pct ?? 0
 
-  const logLines: string[] = job?.stages?.flatMap((s) => {
-    const lines: string[] = []
-    if (s.started_at) lines.push(`[${new Date(s.started_at).toLocaleTimeString()}] ${s.stage_name ?? s.name}`)
-    if (s.output_snippet ?? s.message) lines.push(`  → ${s.output_snippet ?? s.message}`)
-    if (s.status === 'done') lines.push(`  ✓ Done${(s.duration_s ?? s.duration_seconds) ? ` in ${(s.duration_s ?? s.duration_seconds)!.toFixed(1)}s` : ''}`)
-    if (s.status === 'failed') lines.push(`  ✗ Failed`)
-    return lines
-  }) ?? []
+  const liveLogs = job?.live_logs ?? []
+  const logLines: string[] = liveLogs.length > 0
+    ? liveLogs
+    : (job?.stages ?? []).flatMap((s) => {
+        const lines: string[] = []
+        if (s.started_at) lines.push(`[${new Date(s.started_at).toLocaleTimeString()}] ${s.stage_name ?? s.name}`)
+        if (s.output_snippet ?? s.message) lines.push(`  → ${s.output_snippet ?? s.message}`)
+        if (s.status === 'done') lines.push(`  ✓ Done${(s.duration_s ?? s.duration_seconds) ? ` in ${(s.duration_s ?? s.duration_seconds)!.toFixed(1)}s` : ''}`)
+        if (s.status === 'failed') lines.push(`  ✗ Failed`)
+        return lines
+      })
 
   return (
     <motion.div
@@ -533,23 +538,35 @@ function AnalysisSection({
           </div>
           <Terminal size={13} className="text-text-muted ml-1" />
           <span className="text-text-muted text-xs font-mono">pipeline.log</span>
+          {isRunning && (
+            <span className="flex items-center gap-1 text-xs text-green-400 font-mono">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+              live
+            </span>
+          )}
           <span className="ml-auto text-text-muted text-xs">{logLines.length} entries</span>
         </div>
-        <div className="bg-[#0A0E17] h-48 overflow-y-auto p-4 font-mono text-xs space-y-0.5">
+        <div className="bg-[#0A0E17] h-72 overflow-y-auto p-4 font-mono text-xs space-y-0.5" style={{ scrollbarWidth: 'thin', scrollbarColor: '#1E2D45 transparent' }}>
           {logLines.length === 0 ? (
             <p className="text-text-muted italic">Waiting for pipeline to start…</p>
           ) : (
             logLines.map((line, i) => {
               const l = line.toLowerCase()
-              const cls = l.includes('error') || l.includes('failed') ? 'text-red-400'
-                : l.includes('warn') ? 'text-yellow-400'
-                : l.includes('done') || l.includes('success') || l.includes('complete') ? 'text-green-400'
-                : l.includes('start') || l.includes('running') ? 'text-blue-400'
+              const cls = l.includes('error') || l.includes('failed') || line.startsWith('❌') ? 'text-red-400'
+                : l.includes('warn') || line.startsWith('⚠') ? 'text-yellow-400'
+                : l.includes('done') || l.includes('success') || l.includes('complete') || line.startsWith('✅') || line.startsWith('✓') ? 'text-green-400'
+                : l.includes('start') || l.includes('running') || line.startsWith('🔄') || line.startsWith('→') ? 'text-blue-400'
                 : 'text-text-muted'
               return <div key={i} className={`leading-5 ${cls}`}>{line}</div>
             })
           )}
+          {isRunning && (
+            <div className="text-text-muted leading-5">
+              <span className="inline-block w-1.5 h-3 bg-text-muted/60 align-middle" style={{ animation: 'blink 1s step-end infinite' }} />
+            </div>
+          )}
         </div>
+        <style>{`@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }`}</style>
       </div>
     </motion.div>
   )
@@ -731,6 +748,7 @@ function ResultsSection() {
             <TabTrigger value="research"  icon={<Globe      size={14} />}>Research</TabTrigger>
             <TabTrigger value="fivecs"    icon={<Briefcase  size={14} />}>Five C's</TabTrigger>
             <TabTrigger value="shap"      icon={<Shield     size={14} />}>SHAP</TabTrigger>
+            <TabTrigger value="cam"       icon={<FileText   size={14} />}>CAM Preview</TabTrigger>
           </TabList>
 
           {/* Overview */}
@@ -1019,6 +1037,437 @@ function ResultsSection() {
               </div>
             ) : <p className="text-text-muted text-sm py-8 text-center">No SHAP explanations available</p>}
           </TabContent>
+
+          {/* CAM Preview — mirrors the downloaded DOCX exactly */}
+          <TabContent value="cam" className="p-4">
+            {/* Toolbar */}
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-text-muted text-xs">This preview matches the downloaded CAM document.</p>
+              <button
+                onClick={handleDownload}
+                disabled={camLoading}
+                className="flex items-center gap-1.5 text-xs text-text-secondary border border-border-dark rounded-lg px-3 py-1.5 hover:bg-surface2 transition-colors disabled:opacity-50"
+              >
+                <Download size={12} /> {camLoading ? 'Generating…' : 'Download DOCX'}
+              </button>
+            </div>
+
+            {/* A4 paper */}
+            <div className="bg-white text-gray-900 rounded-xl shadow-xl overflow-hidden mx-auto max-w-4xl" style={{ fontFamily: 'Georgia, serif' }}>
+
+              {/* ── COVER PAGE ─────────────────────────────────────── */}
+              <div className="bg-[#1B2A4A] text-white text-center py-3 px-8">
+                <p className="text-xs tracking-[0.25em] uppercase font-bold">Strictly Confidential</p>
+              </div>
+              <div className="px-10 py-8 border-b-4 border-[#1B2A4A] space-y-3">
+                <p className="text-center text-xs tracking-widest uppercase text-[#1B2A4A] font-semibold" style={{ fontFamily: 'sans-serif' }}>Credit Appraisal Memorandum</p>
+                <h1 className="text-center text-3xl font-bold text-[#1B2A4A]">{company?.company_name ?? '—'}</h1>
+                <div className="flex justify-center gap-8 text-sm text-slate-600 pt-1">
+                  {company?.cin && <span>CIN: <strong>{company.cin}</strong></span>}
+                  {company?.sector && <span>Sector: <strong>{company.sector}</strong></span>}
+                  <span>Date: <strong>{new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</strong></span>
+                </div>
+                {company?.loan_amount_requested && (
+                  <p className="text-center text-sm text-slate-500">Loan Amount Requested: <strong className="text-slate-800">{formatCrore(company.loan_amount_requested)}</strong></p>
+                )}
+              </div>
+
+              <div className="px-10 py-8 space-y-8">
+
+                {/* ── SECTION 2: EXECUTIVE SUMMARY ──────────────────── */}
+                <section>
+                  <div className="bg-[#1B2A4A] text-white px-4 py-2 mb-3">
+                    <p className="text-xs font-bold tracking-widest uppercase" style={{ fontFamily: 'sans-serif' }}>Executive Summary</p>
+                  </div>
+                  <table className="w-full text-sm border-collapse">
+                    <tbody>
+                      {([
+                        ['Applicant',                company?.company_name ?? '—'],
+                        ['Loan Amount Requested',    company?.loan_amount_requested != null ? formatCrore(company.loan_amount_requested) : '—'],
+                        ['Recommended Amount',       score?.recommended_loan_amount != null ? formatCrore(score.recommended_loan_amount) : '—'],
+                        ['Interest Rate Proposed',   score?.recommended_interest_rate ?? '—'],
+                        ['Tenure',                   company?.tenure_months != null ? `${company.tenure_months} months` : (score?.recommended_tenure_months != null ? `${score.recommended_tenure_months} months` : '—')],
+                        ['Risk Score (0–10)',         score != null ? `${score.risk_score.toFixed(2)} / 10.00` : '—'],
+                        ['Default Probability',      score?.default_probability != null ? `${(score.default_probability * 100).toFixed(2)}%` : '—'],
+                        ['Risk Band',                score?.risk_band ?? '—'],
+                        ['Decision',                 score?.decision ?? '—'],
+                      ] as [string, string][]).map(([label, value], i) => {
+                        const isBand = label === 'Risk Band'
+                        const isDecision = label === 'Decision'
+                        const bandColor = isBand ? (value === 'PRIME' || value === 'LOW' ? 'text-green-700' : value === 'HIGH' ? 'text-red-700' : 'text-amber-700') : ''
+                        const decColor = isDecision ? (value === 'APPROVE' ? 'text-green-700' : value === 'REJECT' ? 'text-red-700' : 'text-amber-700') : ''
+                        return (
+                          <tr key={label} className={i % 2 === 0 ? 'bg-slate-50' : ''}>
+                            <td className="py-2 px-3 border border-slate-200 font-semibold text-slate-600 w-56" style={{ fontFamily: 'sans-serif' }}>{label}</td>
+                            <td className={`py-2 px-3 border border-slate-200 font-${isDecision || isBand ? 'bold' : 'medium'} ${bandColor || decColor || 'text-slate-800'}`}>{value}</td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </section>
+
+                {/* ── SECTION 3: COMPANY BACKGROUND ─────────────────── */}
+                <section>
+                  <div className="bg-[#1B2A4A] text-white px-4 py-2 mb-3">
+                    <p className="text-xs font-bold tracking-widest uppercase" style={{ fontFamily: 'sans-serif' }}>Company Background</p>
+                  </div>
+                  <table className="w-full text-sm border-collapse mb-4">
+                    <tbody>
+                      {([
+                        ['Company Name',        company?.company_name ?? '—'],
+                        ['CIN / Reg. Number',   company?.cin ?? '—'],
+                        ['Registered Office',   company?.registered_address ?? '—'],
+                        ['Line of Business',    company?.sector ?? '—'],
+                        ['Constitution',        company?.company_type ?? 'Private Limited Company'],
+                      ] as [string, string][]).map(([label, value], i) => (
+                        <tr key={label} className={i === 0 ? 'bg-[#1B2A4A] text-white' : i % 2 === 0 ? 'bg-slate-50' : ''}>
+                          <td className={`py-2 px-3 border border-slate-200 font-semibold w-56 ${i === 0 ? 'text-white' : 'text-slate-600'}`} style={{ fontFamily: 'sans-serif' }}>{label}</td>
+                          <td className={`py-2 px-3 border border-slate-200 ${i === 0 ? 'text-white font-bold' : 'text-slate-800'}`}>{value}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {/* Directors */}
+                  {(ingest?.directors?.length ?? 0) > 0 && (
+                    <>
+                      <p className="text-xs font-bold text-[#1B2A4A] uppercase tracking-wide mb-2 mt-4" style={{ fontFamily: 'sans-serif' }}>Directors / Key Management Personnel</p>
+                      <table className="w-full text-sm border-collapse mb-4">
+                        <thead>
+                          <tr className="bg-[#1B2A4A] text-white">
+                            <th className="py-2 px-3 border border-slate-300 text-left font-semibold" style={{ fontFamily: 'sans-serif' }}>Name</th>
+                            <th className="py-2 px-3 border border-slate-300 text-left font-semibold" style={{ fontFamily: 'sans-serif' }}>Designation</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {ingest!.directors.map((d, i) => (
+                            <tr key={i} className={i % 2 === 0 ? 'bg-slate-50' : ''}>
+                              <td className="py-2 px-3 border border-slate-200 text-slate-800">{d.name}</td>
+                              <td className="py-2 px-3 border border-slate-200 text-slate-600">{d.designation ?? 'Director'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </>
+                  )}
+
+                  {/* Red flags from research */}
+                  {(research?.synthesis_report?.key_red_flags?.length ?? 0) > 0 && (
+                    <>
+                      <p className="text-xs font-bold text-red-700 uppercase tracking-wide mb-1 mt-3" style={{ fontFamily: 'sans-serif' }}>Key Red Flags (External Intelligence)</p>
+                      <ul className="list-disc pl-5 space-y-0.5">
+                        {research!.synthesis_report.key_red_flags.map((flag, i) => (
+                          <li key={i} className="text-sm text-red-700">{flag}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </section>
+
+                {/* ── SECTION 4: FINANCIAL ANALYSIS ─────────────────── */}
+                {financialYears.length > 0 && (
+                  <section>
+                    <div className="bg-[#1B2A4A] text-white px-4 py-2 mb-3">
+                      <p className="text-xs font-bold tracking-widest uppercase" style={{ fontFamily: 'sans-serif' }}>Financial Analysis</p>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm border-collapse">
+                        <thead>
+                          <tr className="bg-[#1B2A4A] text-white">
+                            <th className="py-2 px-3 border border-slate-300 text-left font-semibold" style={{ fontFamily: 'sans-serif' }}>Metric</th>
+                            {financialYears.map((fy) => (
+                              <th key={fy.year} className="py-2 px-3 border border-slate-300 text-center font-semibold" style={{ fontFamily: 'sans-serif' }}>{fy.year}</th>
+                            ))}
+                            <th className="py-2 px-3 border border-slate-300 text-center font-semibold" style={{ fontFamily: 'sans-serif' }}>Trend</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {([
+                            ['Revenue (₹ Cr)',     'revenue',      true],
+                            ['EBITDA (₹ Cr)',      'ebitda',       true],
+                            ['PAT (₹ Cr)',         'pat',          true],
+                            ['EBITDA Margin (%)',  'ebitda_margin',true],
+                            ['PAT Margin (%)',     'pat_margin',   true],
+                            ['Debt / Equity',      'debt_equity',  false],
+                            ['Current Ratio',      'current_ratio',true],
+                            ['DSCR',               'dscr',         true],
+                            ['Revenue Growth (%)', 'revenue_growth',true],
+                          ] as [string, keyof FinancialYear, boolean][]).map(([label, key, upGood], i) => {
+                            const vals = financialYears.map((fy) => fy[key] as number | null)
+                            const last = vals[vals.length - 1]
+                            const prev = vals.length > 1 ? vals[vals.length - 2] : null
+                            const arrow = last != null && prev != null ? (last > prev ? '↑' : last < prev ? '↓' : '→') : '→'
+                            const arrowColor = arrow === '→' ? 'text-slate-500' : (upGood ? (arrow === '↑' ? 'text-green-600' : 'text-red-600') : (arrow === '↑' ? 'text-red-600' : 'text-green-600'))
+                            return (
+                              <tr key={label} className={i % 2 === 0 ? 'bg-slate-50' : ''}>
+                                <td className="py-2 px-3 border border-slate-200 font-semibold text-slate-700" style={{ fontFamily: 'sans-serif' }}>{label}</td>
+                                {financialYears.map((fy) => (
+                                  <td key={fy.year} className="py-2 px-3 border border-slate-200 text-center text-slate-700">
+                                    {(fy[key] as number | null)?.toFixed(2) ?? '—'}
+                                  </td>
+                                ))}
+                                <td className={`py-2 px-3 border border-slate-200 text-center font-bold ${arrowColor}`}>{arrow}</td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    <p className="text-xs text-slate-400 italic mt-1">* ↑ Improvement &nbsp;↓ Deterioration &nbsp;→ Stable. Trend reflects change from penultimate to latest year.</p>
+                  </section>
+                )}
+
+                {/* ── SECTION 5: GST & BANK RECONCILIATION ──────────── */}
+                {ingest && (
+                  <section>
+                    <div className="bg-[#1B2A4A] text-white px-4 py-2 mb-3">
+                      <p className="text-xs font-bold tracking-widest uppercase" style={{ fontFamily: 'sans-serif' }}>GST &amp; Bank Statement Reconciliation</p>
+                    </div>
+
+                    {/* GST sub-section */}
+                    <p className="text-xs font-bold text-[#1B2A4A] uppercase tracking-wide mb-2" style={{ fontFamily: 'sans-serif' }}>GST Analysis</p>
+                    <table className="w-full text-sm border-collapse mb-5">
+                      <thead>
+                        <tr className="bg-[#1B2A4A] text-white">
+                          <th className="py-2 px-3 border border-slate-300 text-left font-semibold" style={{ fontFamily: 'sans-serif' }}>GST Metric</th>
+                          <th className="py-2 px-3 border border-slate-300 text-left font-semibold" style={{ fontFamily: 'sans-serif' }}>Finding</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {([
+                          ['GST Health Score',        ingest.gst_reconciliation?.gst_health_score?.toFixed(1) ?? '—'],
+                          ['ITC Gap (GSTR-2A)',        ingest.gst_reconciliation?.itc_gap_pct != null ? `${ingest.gst_reconciliation.itc_gap_pct.toFixed(1)}%` : '—'],
+                          ['Filing Regularity',       ingest.gst_reconciliation?.filing_regularity ?? '—'],
+                          ['Circular Trading Flag',   ingest.gst_reconciliation?.circular_trading_flag ?? '—'],
+                          ['GST ITC Fraud Risk',      ingest.gst_reconciliation?.gst_itc_fraud_risk ?? '—'],
+                          ['Fictitious Vendor Count', String(ingest.gst_reconciliation?.fictitious_vendor_count ?? 0)],
+                        ] as [string, string][]).map(([label, value], i) => {
+                          const isRed = ['HIGH', 'HIGH_RISK', 'RED', 'CRITICAL', 'FRAUD'].some((w) => value.toUpperCase().includes(w))
+                          return (
+                            <tr key={label} className={i % 2 === 0 ? 'bg-slate-50' : ''}>
+                              <td className="py-2 px-3 border border-slate-200 font-semibold text-slate-600" style={{ fontFamily: 'sans-serif' }}>{label}</td>
+                              <td className={`py-2 px-3 border border-slate-200 ${isRed ? 'text-red-700 font-bold' : 'text-slate-800'}`}>{value}</td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+
+                    {/* Bank sub-section */}
+                    <p className="text-xs font-bold text-[#1B2A4A] uppercase tracking-wide mb-2" style={{ fontFamily: 'sans-serif' }}>Bank Statement Analysis</p>
+                    <table className="w-full text-sm border-collapse mb-5">
+                      <thead>
+                        <tr className="bg-[#1B2A4A] text-white">
+                          <th className="py-2 px-3 border border-slate-300 text-left font-semibold" style={{ fontFamily: 'sans-serif' }}>Bank Metric</th>
+                          <th className="py-2 px-3 border border-slate-300 text-left font-semibold" style={{ fontFamily: 'sans-serif' }}>Finding</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {([
+                          ['Avg Monthly Balance',    ingest.bank_metrics?.avg_monthly_balance != null ? formatCrore(ingest.bank_metrics.avg_monthly_balance) : '—'],
+                          ['Debit / Credit Ratio',   ingest.bank_metrics?.debit_credit_ratio?.toFixed(2) ?? '—'],
+                          ['Cheque / ECS Bounces',   String(ingest.bank_metrics?.bounce_count ?? 0)],
+                          ['UPI Concentration (%)',  ingest.bank_metrics?.upi_percentage != null ? `${ingest.bank_metrics.upi_percentage.toFixed(1)}%` : '—'],
+                        ] as [string, string][]).map(([label, value], i) => {
+                          const isRed = label === 'Cheque / ECS Bounces' && value !== '0'
+                          return (
+                            <tr key={label} className={i % 2 === 0 ? 'bg-slate-50' : ''}>
+                              <td className="py-2 px-3 border border-slate-200 font-semibold text-slate-600" style={{ fontFamily: 'sans-serif' }}>{label}</td>
+                              <td className={`py-2 px-3 border border-slate-200 ${isRed ? 'text-red-700 font-bold' : 'text-slate-800'}`}>{value}</td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+
+                    {/* EWS flags */}
+                    {ews && (
+                      <>
+                        <p className="text-xs font-bold text-[#1B2A4A] uppercase tracking-wide mb-2" style={{ fontFamily: 'sans-serif' }}>Early Warning System (EWS) Flags</p>
+                        <table className="w-full text-sm border-collapse">
+                          <thead>
+                            <tr className="bg-[#1B2A4A] text-white">
+                              <th className="py-2 px-3 border border-slate-300 text-left font-semibold" style={{ fontFamily: 'sans-serif' }}>EWS Flag</th>
+                              <th className="py-2 px-3 border border-slate-300 text-left font-semibold" style={{ fontFamily: 'sans-serif' }}>Level</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {([
+                              ['GST ITC Fraud Risk',      ews.gst_itc_fraud_risk],
+                              ['Circular Trading Risk',   ews.circular_trading_risk],
+                              ['Revenue Inflation Risk',  ews.revenue_inflation_risk],
+                              ['Cash Stress Risk',        ews.cash_stress_risk],
+                              ['Documentation Risk',      ews.documentation_risk],
+                              ['Auditor Concern Risk',    ews.auditor_concern_risk],
+                              ['Director Risk',           ews.director_risk],
+                              ['Compliance Risk',         ews.compliance_risk],
+                              ['SMA Classification',      ews.sma_classification],
+                            ] as [string, string][]).filter(([, v]) => v).map(([label, level], i) => {
+                              const color = level === 'HIGH' || level === 'SMA-2' ? 'text-red-700' : level === 'MEDIUM' || level === 'SMA-1' ? 'text-amber-700' : 'text-green-700'
+                              return (
+                                <tr key={label} className={i % 2 === 0 ? 'bg-slate-50' : ''}>
+                                  <td className="py-2 px-3 border border-slate-200 font-semibold text-slate-600" style={{ fontFamily: 'sans-serif' }}>{label}</td>
+                                  <td className={`py-2 px-3 border border-slate-200 font-bold ${color}`}>{level}</td>
+                                </tr>
+                              )
+                            })}
+                          </tbody>
+                        </table>
+                      </>
+                    )}
+                  </section>
+                )}
+
+                {/* ── SECTION 6: FIVE C'S ───────────────────────────── */}
+                {five_cs && Object.values(five_cs).some(Boolean) && (
+                  <section>
+                    <div className="bg-[#1B2A4A] text-white px-4 py-2 mb-3">
+                      <p className="text-xs font-bold tracking-widest uppercase" style={{ fontFamily: 'sans-serif' }}>Credit Assessment — The Five C's</p>
+                    </div>
+                    <div className="space-y-5">
+                      {([
+                        ['character',  '1. Character — Management Integrity & Track Record'],
+                        ['capacity',   '2. Capacity — Debt Servicing Ability'],
+                        ['capital',    '3. Capital — Net Worth & Equity Cushion'],
+                        ['collateral', '4. Collateral — Security Coverage'],
+                        ['conditions', '5. Conditions — External Environment'],
+                      ] as const).map(([key, title]) => five_cs[key] ? (
+                        <div key={key}>
+                          <p className="text-xs font-bold text-[#1B2A4A] uppercase tracking-wide mb-1.5" style={{ fontFamily: 'sans-serif' }}>{title}</p>
+                          <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{five_cs[key]}</p>
+                        </div>
+                      ) : null)}
+                    </div>
+                  </section>
+                )}
+
+                {/* ── SECTION 7: RISK SCORE & SHAP ──────────────────── */}
+                {score && (
+                  <section>
+                    <div className="bg-[#1B2A4A] text-white px-4 py-2 mb-3">
+                      <p className="text-xs font-bold tracking-widest uppercase" style={{ fontFamily: 'sans-serif' }}>Risk Score &amp; Model Explanation</p>
+                    </div>
+                    <table className="w-full text-sm border-collapse mb-4">
+                      <tbody>
+                        {([
+                          ['LightGBM Risk Score',    `${score.risk_score.toFixed(2)} / 10.00`],
+                          ['Probability of Default', `${(score.default_probability * 100).toFixed(2)}%`],
+                          ['Risk Band',              score.risk_band],
+                        ] as [string, string][]).map(([label, value], i) => {
+                          const isBand = label === 'Risk Band'
+                          const color = isBand ? (value === 'PRIME' || value === 'LOW' ? 'text-green-700' : value === 'HIGH' ? 'text-red-700' : 'text-amber-700') : 'text-slate-800'
+                          return (
+                            <tr key={label} className={i % 2 === 0 ? 'bg-slate-50' : ''}>
+                              <td className="py-2 px-3 border border-slate-200 font-semibold text-slate-600 w-56" style={{ fontFamily: 'sans-serif' }}>{label}</td>
+                              <td className={`py-2 px-3 border border-slate-200 font-bold ${color}`}>{value}</td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                    {allSHAP.length > 0 && (
+                      <>
+                        <p className="text-xs font-bold text-[#1B2A4A] uppercase tracking-wide mb-2" style={{ fontFamily: 'sans-serif' }}>Top Contributing Factors (SHAP)</p>
+                        <table className="w-full text-sm border-collapse">
+                          <thead>
+                            <tr className="bg-[#1B2A4A] text-white">
+                              <th className="py-2 px-3 border border-slate-300 text-left font-semibold" style={{ fontFamily: 'sans-serif' }}>Factor</th>
+                              <th className="py-2 px-3 border border-slate-300 text-left font-semibold" style={{ fontFamily: 'sans-serif' }}>Direction</th>
+                              <th className="py-2 px-3 border border-slate-300 text-center font-semibold" style={{ fontFamily: 'sans-serif' }}>SHAP Value</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {allSHAP.slice(0, 10).map((f, i) => (
+                              <tr key={i} className={i % 2 === 0 ? 'bg-slate-50' : ''}>
+                                <td className="py-2 px-3 border border-slate-200 text-slate-700">{f.human_readable_name}</td>
+                                <td className={`py-2 px-3 border border-slate-200 font-semibold ${f.direction === 'risk' ? 'text-red-600' : 'text-green-600'}`}>{f.direction === 'risk' ? 'Risk ↑' : 'Protective ↓'}</td>
+                                <td className={`py-2 px-3 border border-slate-200 text-center font-mono ${f.shap_value < 0 ? 'text-green-600' : 'text-red-600'}`}>{f.shap_value >= 0 ? '+' : ''}{f.shap_value.toFixed(4)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </>
+                    )}
+                  </section>
+                )}
+
+                {/* ── SECTION 8: RECOMMENDATION ─────────────────────── */}
+                {score && (
+                  <section>
+                    <div className="bg-[#1B2A4A] text-white px-4 py-2 mb-3">
+                      <p className="text-xs font-bold tracking-widest uppercase" style={{ fontFamily: 'sans-serif' }}>Recommendation</p>
+                    </div>
+                    <div className={`rounded-lg border-2 p-5 ${
+                      score.decision === 'APPROVE' ? 'bg-green-50 border-green-400' :
+                      score.decision === 'REJECT'  ? 'bg-red-50 border-red-400' :
+                                                     'bg-amber-50 border-amber-400'
+                    }`}>
+                      <p className={`text-lg font-bold mb-1 ${
+                        score.decision === 'APPROVE' ? 'text-green-800' :
+                        score.decision === 'REJECT'  ? 'text-red-800' : 'text-amber-800'
+                      }`}>DECISION: {score.decision}</p>
+                      <p className="text-sm font-semibold text-slate-700 mb-2">
+                        {score.recommended_loan_amount != null && <>Recommended Amount: {formatCrore(score.recommended_loan_amount)}</>}
+                        {score.recommended_interest_rate && <>&nbsp;&nbsp;|&nbsp;&nbsp;Rate: {score.recommended_interest_rate}</>}
+                        {score.recommended_tenure_months != null && <>&nbsp;&nbsp;|&nbsp;&nbsp;Tenure: {score.recommended_tenure_months} months</>}
+                      </p>
+                      {score.decision_rationale && <p className="text-sm text-slate-700 leading-relaxed">{score.decision_rationale}</p>}
+                    </div>
+                  </section>
+                )}
+
+                {/* ── SECTION 9: EARLY WARNING INDICATORS ───────────── */}
+                <section>
+                  <div className="bg-[#1B2A4A] text-white px-4 py-2 mb-3">
+                    <p className="text-xs font-bold tracking-widest uppercase" style={{ fontFamily: 'sans-serif' }}>Early Warning Indicators &amp; Monitoring Triggers</p>
+                  </div>
+                  <p className="text-sm text-slate-600 mb-3">The following covenant and monitoring triggers have been pre-agreed with the borrower. Breach of any trigger will initiate a review by the credit committee within 15 working days.</p>
+                  <ul className="list-disc pl-5 space-y-1 text-sm text-slate-700">
+                    {[
+                      'DSCR falls below 1.20 for two consecutive quarters',
+                      'Current ratio drops below 1.0',
+                      'Revenue declines >20% year-on-year',
+                      'Any bounced cheque or ECS return',
+                      'GST ITC mismatch exceeds 15% of claimed amount',
+                      'Director listed in RBI defaulter/wilful defaulter database',
+                      'New criminal/fraud litigation filed against any director',
+                      'Auditor issues qualified or adverse opinion',
+                      'Change in promoter shareholding exceeding 26% without prior intimation',
+                    ].map((trigger, i) => (
+                      <li key={i} className={/fraud|wilful|ibc|nclt|insolvenc/i.test(trigger) ? 'text-red-700 font-medium' : ''}>{trigger}</li>
+                    ))}
+                  </ul>
+                </section>
+
+                {/* ── SIGN-OFF FOOTER ────────────────────────────────── */}
+                <div className="border-t-2 border-[#1B2A4A] pt-5 mt-4">
+                  <table className="w-full text-sm border-collapse">
+                    <thead>
+                      <tr className="bg-[#1B2A4A] text-white">
+                        {['Prepared by', 'Reviewed by', 'Approved by'].map((h) => (
+                          <th key={h} className="py-2 px-3 border border-slate-300 text-center font-semibold" style={{ fontFamily: 'sans-serif' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        {[0, 1, 2].map((i) => (
+                          <td key={i} className="py-8 px-3 border border-slate-200 text-center text-xs text-slate-400">
+                            <div className="border-t border-slate-300 pt-2 mt-4 mx-4">Signature &amp; Date</div>
+                          </td>
+                        ))}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <p className="text-center text-xs text-slate-400 pt-2">
+                  Generated by IntelliCredit AI · {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })} · Confidential — For internal use only
+                </p>
+              </div>
+            </div>
+          </TabContent>
         </Tabs>
       </Card>
 
@@ -1088,18 +1537,20 @@ function ResultsSection() {
 // ─── Main page ───────────────────────────────────────────────────────────────
 
 export default function AppraisalPage() {
-  const { startSession, recordJob, job_id, results, reset } = useSession()
-  // Always start fresh on this page
+  const { startSession, recordJob, reset, setOwnerUserId } = useSession()
+  const currentUser = useAuthStore((s) => s.user)
+  const queryClient = useQueryClient()
+  // Always start fresh when navigating to /new
   const [phase, setPhase] = useState<'input' | 'analysis' | 'results'>('input')
   const [companyNameDisplay, setCompanyNameDisplay] = useState('')
   const [activeJobId, setActiveJobId] = useState<string | null>(null)
-  const resultsRef = useRef<HTMLDivElement>(null)
-  const analysisRef = useRef<HTMLDivElement>(null)
 
-  // Clear any stale previous session when landing on this page
+  // Reset any persisted results from a previous session on mount
   useEffect(() => {
     reset()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const resultsRef = useRef<HTMLDivElement>(null)
+  const analysisRef = useRef<HTMLDivElement>(null)
 
   const handleLaunch = async (
     form: CompanyForm, 
@@ -1126,6 +1577,8 @@ export default function AppraisalPage() {
 
     const job = await runFullPipeline(fd)
 
+    // Stamp the current user as owner so other users don't see this data
+    setOwnerUserId(currentUser?.id ?? null)
     startSession(job.job_id, {
       company_name: form.company_name,
       loan_amount_requested: form.loan_amount_requested,
@@ -1142,6 +1595,7 @@ export default function AppraisalPage() {
   }
 
   const handleComplete = () => {
+    queryClient.invalidateQueries({ queryKey: ['companies'] })
     setPhase('results')
     setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150)
   }
@@ -1152,8 +1606,10 @@ export default function AppraisalPage() {
   }
 
   const handleNewAppraisal = () => {
+    reset()
     setPhase('input')
     setActiveJobId(null)
+    setCompanyNameDisplay('')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 

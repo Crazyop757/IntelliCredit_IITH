@@ -1,7 +1,7 @@
 """
-config.py — Central configuration for intelli_credit.
+config.py — Central configuration for FinSight.
 
-Loads Databricks credentials from .env, defines all file-path constants,
+Loads credentials from .env, defines all file-path constants,
 pipeline decision thresholds, and provides DeltaLakeManager (with a
 transparent local-Parquet fallback when Databricks is unavailable).
 
@@ -27,40 +27,40 @@ load_dotenv(PROJECT_ROOT / ".env")
 # ---------------------------------------------------------------------------
 # Pipeline decision thresholds (env-var backed, documented defaults)
 # ---------------------------------------------------------------------------
-HARD_REJECT_BOUNCE_COUNT = int(os.getenv("INTELLI_HARD_REJECT_BOUNCE_COUNT", "5"))
-HARD_REJECT_DEFAULT_PROB = float(os.getenv("INTELLI_HARD_REJECT_DEFAULT_PROB", "0.10"))
-PRIME_PD_THRESHOLD = float(os.getenv("INTELLI_PRIME_PD_THRESHOLD", "0.05"))
-PARTIAL_APPROVE_PD_THRESHOLD = float(os.getenv("INTELLI_PARTIAL_APPROVE_PD_THRESHOLD", "0.10"))
-PRIME_RATE = float(os.getenv("INTELLI_PRIME_RATE", "9.50"))
-MCLR_SPREAD = float(os.getenv("INTELLI_MCLR_SPREAD", "0.75"))
+HARD_REJECT_BOUNCE_COUNT = int(os.getenv("FINSIGHT_HARD_REJECT_BOUNCE_COUNT", "5"))
+HARD_REJECT_DEFAULT_PROB = float(os.getenv("FINSIGHT_HARD_REJECT_DEFAULT_PROB", "0.10"))
+PRIME_PD_THRESHOLD = float(os.getenv("FINSIGHT_PRIME_PD_THRESHOLD", "0.05"))
+PARTIAL_APPROVE_PD_THRESHOLD = float(os.getenv("FINSIGHT_PARTIAL_APPROVE_PD_THRESHOLD", "0.10"))
+PRIME_RATE = float(os.getenv("FINSIGHT_PRIME_RATE", "9.50"))
+MCLR_SPREAD = float(os.getenv("FINSIGHT_MCLR_SPREAD", "0.75"))
 
 # NER / sentiment thresholds
-AUDITOR_SENTIMENT_THRESHOLD = float(os.getenv("INTELLI_AUDITOR_SENTIMENT_THRESHOLD", "-0.3"))
-PDF_MIN_TEXT_LENGTH = int(os.getenv("INTELLI_PDF_MIN_TEXT_LENGTH", "500"))
+AUDITOR_SENTIMENT_THRESHOLD = float(os.getenv("FINSIGHT_AUDITOR_SENTIMENT_THRESHOLD", "-0.3"))
+PDF_MIN_TEXT_LENGTH = int(os.getenv("FINSIGHT_PDF_MIN_TEXT_LENGTH", "500"))
 
 # GNN / scoring thresholds
-GNN_MIN_TRAINING_SAMPLES = int(os.getenv("INTELLI_GNN_MIN_TRAINING_SAMPLES", "5"))
-GNN_MIN_LABELLED_FRAUD = int(os.getenv("INTELLI_GNN_MIN_LABELLED_FRAUD", "5"))
-GNN_MIN_LABELLED_CLEAN = int(os.getenv("INTELLI_GNN_MIN_LABELLED_CLEAN", "5"))
+GNN_MIN_TRAINING_SAMPLES = int(os.getenv("FINSIGHT_GNN_MIN_TRAINING_SAMPLES", "5"))
+GNN_MIN_LABELLED_FRAUD = int(os.getenv("FINSIGHT_GNN_MIN_LABELLED_FRAUD", "5"))
+GNN_MIN_LABELLED_CLEAN = int(os.getenv("FINSIGHT_GNN_MIN_LABELLED_CLEAN", "5"))
 
 # Synthesizer thresholds
-SYNTH_DIVERGENCE_THRESHOLD = float(os.getenv("INTELLI_SYNTH_DIVERGENCE_THRESHOLD", "2.5"))
+SYNTH_DIVERGENCE_THRESHOLD = float(os.getenv("FINSIGHT_SYNTH_DIVERGENCE_THRESHOLD", "2.5"))
 
 # Feature builder safe defaults (used when source data is None/missing)
-SAFE_DEFAULT_GST_HEALTH = float(os.getenv("INTELLI_SAFE_DEFAULT_GST_HEALTH", "5.0"))
-SAFE_DEFAULT_NEWS_RISK = float(os.getenv("INTELLI_SAFE_DEFAULT_NEWS_RISK", "5.0"))
-SAFE_DEFAULT_RATIO = float(os.getenv("INTELLI_SAFE_DEFAULT_RATIO", "0.0"))
+SAFE_DEFAULT_GST_HEALTH = float(os.getenv("FINSIGHT_SAFE_DEFAULT_GST_HEALTH", "5.0"))
+SAFE_DEFAULT_NEWS_RISK = float(os.getenv("FINSIGHT_SAFE_DEFAULT_NEWS_RISK", "5.0"))
+SAFE_DEFAULT_RATIO = float(os.getenv("FINSIGHT_SAFE_DEFAULT_RATIO", "0.0"))
 
 # Pipeline job timeout (seconds)
-PIPELINE_JOB_TIMEOUT_SECONDS = int(os.getenv("INTELLI_PIPELINE_JOB_TIMEOUT_SECONDS", "900"))
+PIPELINE_JOB_TIMEOUT_SECONDS = int(os.getenv("FINSIGHT_PIPELINE_JOB_TIMEOUT_SECONDS", "900"))
 
 # Research agent tool timeout (seconds)
-RESEARCH_TOOL_TIMEOUT_SECONDS = int(os.getenv("INTELLI_RESEARCH_TOOL_TIMEOUT_SECONDS", "30"))
+RESEARCH_TOOL_TIMEOUT_SECONDS = int(os.getenv("FINSIGHT_RESEARCH_TOOL_TIMEOUT_SECONDS", "30"))
 
 # Claude API settings
-CLAUDE_MODEL = os.getenv("INTELLI_CLAUDE_MODEL", "claude-haiku-4-5-20251001")
-CLAUDE_MAX_TOKENS = int(os.getenv("INTELLI_CLAUDE_MAX_TOKENS", "1000"))
-CLAUDE_TIMEOUT_SECONDS = int(os.getenv("INTELLI_CLAUDE_TIMEOUT_SECONDS", "60"))
+CLAUDE_MODEL = os.getenv("FINSIGHT_CLAUDE_MODEL", "claude-haiku-4-5-20251001")
+CLAUDE_MAX_TOKENS = int(os.getenv("FINSIGHT_CLAUDE_MAX_TOKENS", "1000"))
+CLAUDE_TIMEOUT_SECONDS = int(os.getenv("FINSIGHT_CLAUDE_TIMEOUT_SECONDS", "60"))
 
 # ---------------------------------------------------------------------------
 # File-path constants
@@ -107,7 +107,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s  %(levelname)-8s  %(name)s — %(message)s",
 )
-logger = logging.getLogger("intelli_credit.config")
+logger = logging.getLogger("finsight.config")
 
 # ---------------------------------------------------------------------------
 # DeltaLakeManager

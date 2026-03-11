@@ -1,5 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '../store/authStore'
+import { supabase } from '../lib/supabase'
 
 const STYLES = `
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;800&display=swap');
@@ -611,6 +613,17 @@ function TerminalWidget() {
 
 export default function LandingPage() {
   const nav = useNavigate()
+  const user = useAuthStore((s) => s.user)
+  const clearAuth = useAuthStore((s) => s.clearAuth)
+
+  const handleNavAuth = async () => {
+    if (user) {
+      await supabase.auth.signOut()
+      clearAuth()
+    } else {
+      nav('/auth/login')
+    }
+  }
 
   return (
     <div className="lp noise">
@@ -635,14 +648,14 @@ export default function LandingPage() {
       >
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}>
           <span style={{ fontSize: 15, fontWeight: 800, color: '#fff', letterSpacing: -0.5 }}>
-            INTELLI
+            Fin
           </span>
           <span style={{ fontSize: 15, fontWeight: 800, color: '#2563EB', letterSpacing: -0.5 }}>
-            CREDIT
+            Sight
           </span>
         </div>
         <button
-          onClick={() => nav('/dashboard')}
+          onClick={handleNavAuth}
           style={{
             background: 'transparent',
             border: '1px solid #334155',
@@ -665,7 +678,7 @@ export default function LandingPage() {
             e.currentTarget.style.color = '#94A3B8'
           }}
         >
-          Sign In
+          {user ? 'Log Out' : 'Sign In'}
         </button>
       </nav>
 
@@ -705,7 +718,7 @@ export default function LandingPage() {
                 color: '#fff',
               }}
             >
-              INTELLI
+              Fin
             </h1>
             <h1
               className="hero-title"
@@ -717,7 +730,7 @@ export default function LandingPage() {
                 color: '#2563EB',
               }}
             >
-              CREDIT
+              Sight
             </h1>
             <p
               style={{
@@ -757,31 +770,6 @@ export default function LandingPage() {
                 }}
               >
                 Request Access
-              </button>
-              <button
-                style={{
-                  background: 'transparent',
-                  color: '#fff',
-                  border: '1px solid #fff',
-                  padding: '12px 28px',
-                  fontSize: 13,
-                  fontWeight: 800,
-                  letterSpacing: '0.12em',
-                  textTransform: 'uppercase' as const,
-                  cursor: 'pointer',
-                  fontFamily: 'Inter, sans-serif',
-                  transition: 'border-color 0.2s, color 0.2s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = '#2563EB'
-                  e.currentTarget.style.color = '#2563EB'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = '#fff'
-                  e.currentTarget.style.color = '#fff'
-                }}
-              >
-                View Documentation
               </button>
             </div>
           </div>
@@ -1119,89 +1107,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── FINAL CTA ───────────────────────────────────────────── */}
-      <section
-        style={{
-          padding: '120px 40px',
-          textAlign: 'center',
-          position: 'relative',
-        }}
-      >
-        <h2
-          style={{
-            fontSize: 64,
-            fontWeight: 800,
-            color: '#fff',
-            letterSpacing: -2.5,
-            lineHeight: 1.05,
-            marginBottom: 16,
-          }}
-        >
-          Ready to underwrite
-          <br />
-          smarter?
-        </h2>
-        <p
-          style={{
-            fontSize: 16,
-            fontWeight: 300,
-            color: '#64748B',
-            maxWidth: 480,
-            margin: '0 auto 40px',
-            lineHeight: 1.6,
-          }}
-        >
-          Join leading NBFCs using Intelli-Credit for AI-powered credit appraisal.
-        </p>
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-          <button
-            onClick={() => nav('/new')}
-            style={{
-              background: '#2563EB',
-              color: '#fff',
-              border: 'none',
-              padding: '14px 32px',
-              fontSize: 13,
-              fontWeight: 800,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase' as const,
-              cursor: 'pointer',
-              fontFamily: 'Inter, sans-serif',
-              transition: 'background 0.2s',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = '#1D4ED8')}
-            onMouseLeave={(e) => (e.currentTarget.style.background = '#2563EB')}
-          >
-            Start Free Trial
-          </button>
-          <button
-            style={{
-              background: 'transparent',
-              color: '#fff',
-              border: '1px solid #fff',
-              padding: '14px 32px',
-              fontSize: 13,
-              fontWeight: 800,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase' as const,
-              cursor: 'pointer',
-              fontFamily: 'Inter, sans-serif',
-              transition: 'border-color 0.2s, color 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#2563EB'
-              e.currentTarget.style.color = '#2563EB'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = '#fff'
-              e.currentTarget.style.color = '#fff'
-            }}
-          >
-            Schedule Demo
-          </button>
-        </div>
-      </section>
-
       {/* ── FOOTER ──────────────────────────────────────────────── */}
       <footer
         style={{
@@ -1215,8 +1120,8 @@ export default function LandingPage() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}>
-          <span style={{ fontSize: 13, fontWeight: 800, color: '#fff' }}>INTELLI</span>
-          <span style={{ fontSize: 13, fontWeight: 800, color: '#2563EB' }}>CREDIT</span>
+          <span style={{ fontSize: 13, fontWeight: 800, color: '#fff' }}>Fin</span>
+          <span style={{ fontSize: 13, fontWeight: 800, color: '#2563EB' }}>Sight</span>
         </div>
         <span style={{ fontSize: 11, color: '#334155' }}>
           IIT Hyderabad &middot; 2025

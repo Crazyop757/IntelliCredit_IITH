@@ -108,7 +108,7 @@ export default function Dashboard() {
   const { data: companies, isLoading } = useQuery({
     queryKey: ['companies'],
     queryFn: listCompanies,
-    staleTime: 60_000,
+    staleTime: 0,
   })
 
   const list = companies?.companies ?? []

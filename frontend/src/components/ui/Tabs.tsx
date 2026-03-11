@@ -29,14 +29,13 @@ interface TabListProps {
 
 export function TabList({ children, className = '' }: TabListProps) {
   return (
-    <div
-      className={[
-        'flex items-center gap-1 border-b border-border-dark',
-        className,
-      ].join(' ')}
-      role="tablist"
-    >
-      {children}
+    <div className={['overflow-x-auto', className].join(' ')}>
+      <div
+        className="flex items-center gap-1 border-b border-border-dark min-w-max"
+        role="tablist"
+      >
+        {children}
+      </div>
     </div>
   )
 }

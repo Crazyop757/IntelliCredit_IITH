@@ -1,5 +1,5 @@
 """
-Intelli-Credit FastAPI application.
+FinSight FastAPI application.
 
 Start with:
   python -m uvicorn src.api.main:app --reload --port 8000
@@ -29,13 +29,13 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)-8s %(name)s  %(message)s",
     handlers=[logging.StreamHandler(sys.stdout)],
 )
-log = logging.getLogger("intelli.api")
+log = logging.getLogger("finsight.api")
 
 
 # ── Lifespan: warm up heavy singletons at startup ─────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    log.info("🚀  Intelli-Credit API starting up…")
+    log.info("FinSight API starting up...")
     settings.outputs_dir.mkdir(parents=True, exist_ok=True)
 
     # Run full startup validation (Tectonic, API keys, GNN, NER, LightGBM)
@@ -47,7 +47,7 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    log.info("👋  Intelli-Credit API shutting down…")
+    log.info("FinSight API shutting down...")
     from src.api.dependencies import get_executor
     executor = get_executor()
     executor.shutdown(wait=False)
@@ -56,9 +56,9 @@ async def lifespan(app: FastAPI):
 # ── App factory ────────────────────────────────────────────────────────────────
 def create_app() -> FastAPI:
     app = FastAPI(
-        title="Intelli-Credit API",
+        title="FinSight API",
         description="""
-## Intelli-Credit — Production-Grade Credit Intelligence Platform
+## FinSight — Production-Grade Credit Intelligence Platform
 
 A unified REST API for the complete credit analysis workflow:
 
@@ -75,7 +75,7 @@ A unified REST API for the complete credit analysis workflow:
 
 ### Authentication
 Pass your API key in the **`X-API-Key`** header.  
-Set `INTELLI_API_KEY` environment variable (or `.env` file) to configure the key.
+Set `FINSIGHT_API_KEY` environment variable (or `.env` file) to configure the key.
 
 ### Async Jobs
 Long-running operations return a `job_id` instantly.  
@@ -135,6 +135,7 @@ Poll `GET .../jobs/{job_id}` until `status == "DONE"`.
     from src.api.routers.cam import router as cam_router
     from src.api.routers.companies import router as companies_router
     from src.api.routers.analysis import router as analysis_router
+    from src.api.routers.auth import router as auth_router
 
     API_PREFIX = "/api/v1"
 
@@ -150,6 +151,17 @@ Poll `GET .../jobs/{job_id}` until `status == "DONE"`.
     app.include_router(cam_router, prefix=API_PREFIX)
     app.include_router(companies_router, prefix=API_PREFIX)
     app.include_router(analysis_router, prefix=API_PREFIX)
+    app.include_router(auth_router, prefix=API_PREFIX)
+
+    # ── Security headers middleware ────────────────────────────────────────────
+    @app.middleware("http")
+    async def add_security_headers(request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        return response
 
     # ── Serve built frontend if present (single-container deployment) ─────
     frontend_dir = Path("frontend_dist")
@@ -175,7 +187,7 @@ Poll `GET .../jobs/{job_id}` until `status == "DONE"`.
         @app.get("/", include_in_schema=False)
         async def root() -> dict[str, Any]:
             return {
-                "service": "intelli-credit-api",
+                "service": "finsight-api",
                 "version": "1.0.0",
                 "docs": "/docs",
                 "health": "/health",

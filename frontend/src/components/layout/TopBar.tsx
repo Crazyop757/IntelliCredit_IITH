@@ -1,6 +1,6 @@
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { ArrowLeft, RefreshCw, Bell } from 'lucide-react'
+import { ArrowLeft, RefreshCw } from 'lucide-react'
 import { useSessionStore } from '../../store/sessionStore'
 
 const titleMap: Record<string, string> = {
@@ -58,12 +58,7 @@ export default function TopBar() {
             New Appraisal
           </button>
         )}
-        <button className="w-8 h-8 flex items-center justify-center rounded-lg text-text-muted hover:text-text-primary hover:bg-surface2 transition-colors relative">
-          <Bell size={16} />
-        </button>
-        <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center text-white text-xs font-semibold shadow-sm">
-          U
-        </div>
+
       </div>
     </header>
   )

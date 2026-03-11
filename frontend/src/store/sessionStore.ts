@@ -6,6 +6,7 @@ export const useSessionStore = create<SessionState>()(
   persist(
     (set) => ({
       session_id: null,
+      owner_user_id: null,
       company: null,
       job_id: null,
       pipeline_status: null,
@@ -15,6 +16,7 @@ export const useSessionStore = create<SessionState>()(
       qualitative_data: null,
 
       setSession: (id: string) => set({ session_id: id }),
+      setOwnerUserId: (id: string | null) => set({ owner_user_id: id }),
       setCompany: (c: Company) => set({ company: c }),
       setJobId: (id: string) => set({ job_id: id }),
       setPipelineStatus: (s: PipelineJob) => set({ pipeline_status: s }),
@@ -26,6 +28,7 @@ export const useSessionStore = create<SessionState>()(
       reset: () =>
         set({
           session_id: null,
+          owner_user_id: null,
           company: null,
           job_id: null,
           pipeline_status: null,
@@ -36,9 +39,10 @@ export const useSessionStore = create<SessionState>()(
         }),
     }),
     {
-      name: 'intelli_credit_session',
+      name: 'finsight_session',
       partialize: (state) => ({
         session_id: state.session_id,
+        owner_user_id: state.owner_user_id,
         company: state.company,
         job_id: state.job_id,
         results: state.results,

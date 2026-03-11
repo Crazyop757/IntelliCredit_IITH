@@ -5,13 +5,24 @@ import { Toaster } from 'react-hot-toast'
 import AppLayout from './components/layout/AppLayout'
 import ErrorBoundary from './components/ErrorBoundary'
 import Skeleton from './components/ui/Skeleton'
+import ProtectedRoute from './components/auth/ProtectedRoute'
+import { useAuth } from './hooks/useAuth'
 
 const LandingPage = lazy(() => import('./pages/LandingPage'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const AppraisalPage = lazy(() => import('./pages/AppraisalPage'))
 const CompaniesPage = lazy(() => import('./pages/CompaniesPage'))
 const CompanyDetail = lazy(() => import('./pages/CompanyDetail'))
+const HistoryPage = lazy(() => import('./pages/HistoryPage'))
+const ProfilePage = lazy(() => import('./pages/ProfilePage'))
+const Results = lazy(() => import('./pages/Results'))
 const NotFound = lazy(() => import('./pages/NotFound'))
+
+// Auth pages (standalone — no AppLayout)
+const LoginPage = lazy(() => import('./pages/auth/LoginPage'))
+const SignupPage = lazy(() => import('./pages/auth/SignupPage'))
+const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'))
+const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,12 +49,15 @@ function PageLoader() {
 }
 
 export default function App() {
+  // Initialise Supabase auth listener — must be called once at root
+  useAuth()
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <ErrorBoundary>
           <Routes>
-            {/* Standalone landing page - no app shell */}
+            {/* Public standalone pages */}
             <Route
               path="/"
               element={
@@ -52,48 +66,66 @@ export default function App() {
                 </Suspense>
               }
             />
-            {/* App routes wrapped in sidebar/topbar layout */}
-            <Route element={<AppLayout />}>
+
+            {/* Auth pages — no AppLayout, no ProtectedRoute */}
+            <Route
+              path="/auth/login"
+              element={<Suspense fallback={<div className="min-h-screen bg-[#080C14]" />}><LoginPage /></Suspense>}
+            />
+            <Route
+              path="/auth/signup"
+              element={<Suspense fallback={<div className="min-h-screen bg-[#080C14]" />}><SignupPage /></Suspense>}
+            />
+            <Route
+              path="/auth/forgot-password"
+              element={<Suspense fallback={<div className="min-h-screen bg-[#080C14]" />}><ForgotPasswordPage /></Suspense>}
+            />
+            <Route
+              path="/auth/reset-password"
+              element={<Suspense fallback={<div className="min-h-screen bg-[#080C14]" />}><ResetPasswordPage /></Suspense>}
+            />
+
+            {/* Protected app routes wrapped in sidebar/topbar layout */}
+            <Route
+              element={
+                <ProtectedRoute>
+                  <AppLayout />
+                </ProtectedRoute>
+              }
+            >
               <Route
                 path="/dashboard"
-                element={
-                  <Suspense fallback={<PageLoader />}>
-                    <Dashboard />
-                  </Suspense>
-                }
+                element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>}
               />
               <Route
                 path="/new"
-                element={
-                  <Suspense fallback={<PageLoader />}>
-                    <AppraisalPage />
-                  </Suspense>
-                }
+                element={<Suspense fallback={<PageLoader />}><AppraisalPage /></Suspense>}
               />
               <Route
                 path="/companies"
-                element={
-                  <Suspense fallback={<PageLoader />}>
-                    <CompaniesPage />
-                  </Suspense>
-                }
+                element={<Suspense fallback={<PageLoader />}><CompaniesPage /></Suspense>}
               />
               <Route
                 path="/companies/:id"
-                element={
-                  <Suspense fallback={<PageLoader />}>
-                    <CompanyDetail />
-                  </Suspense>
-                }
+                element={<Suspense fallback={<PageLoader />}><CompanyDetail /></Suspense>}
+              />
+              <Route
+                path="/history"
+                element={<Suspense fallback={<PageLoader />}><HistoryPage /></Suspense>}
+              />
+              <Route
+                path="/profile"
+                element={<Suspense fallback={<PageLoader />}><ProfilePage /></Suspense>}
+              />
+              <Route
+                path="/results"
+                element={<Suspense fallback={<PageLoader />}><Results /></Suspense>}
               />
             </Route>
+
             <Route
               path="*"
-              element={
-                <Suspense fallback={<PageLoader />}>
-                  <NotFound />
-                </Suspense>
-              }
+              element={<Suspense fallback={<PageLoader />}><NotFound /></Suspense>}
             />
           </Routes>
         </ErrorBoundary>

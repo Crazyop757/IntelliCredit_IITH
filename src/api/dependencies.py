@@ -13,9 +13,12 @@ from pathlib import Path
 from typing import Annotated, Any, AsyncGenerator
 
 from fastapi import Depends, Header, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from src.api.config import settings
 from src.api.job_store import JobStore, job_store as _job_store
+
+_bearer = HTTPBearer(auto_error=False)
 
 log = logging.getLogger(__name__)
 
@@ -36,7 +39,7 @@ def get_executor() -> concurrent.futures.ThreadPoolExecutor:
     if _executor is None:
         _executor = concurrent.futures.ThreadPoolExecutor(
             max_workers=settings.max_pipeline_workers,
-            thread_name_prefix="intelli_worker",
+            thread_name_prefix="finsight_worker",
         )
     return _executor
 
@@ -61,6 +64,66 @@ async def run_in_thread(fn, *args, **kwargs):
 # ── Job Store DI ──────────────────────────────────────────────────────────────
 def get_job_store() -> JobStore:
     return _job_store
+
+
+# ── Supabase JWT Auth ─────────────────────────────────────────────────────────
+
+def _decode_supabase_jwt(token: str) -> dict:
+    """Validate a Supabase JWT by calling admin.auth.get_user() — no JWT secret needed."""
+    from src.database.supabase_client import get_supabase_admin_client
+    admin = get_supabase_admin_client()
+    if admin is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Authentication not configured on this server.",
+        )
+    try:
+        response = admin.auth.get_user(token)
+        if response.user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired token",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        user = response.user
+        return {
+            "sub": str(user.id),
+            "email": user.email or "",
+            "user_metadata": user.user_metadata or {},
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Token validation failed: {exc}",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
+) -> dict:
+    """FastAPI dependency: extract + verify Supabase JWT, return payload dict."""
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authorization header missing.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return _decode_supabase_jwt(credentials.credentials)
+
+
+# ── Repository DI ─────────────────────────────────────────────────────────────
+
+def get_appraisal_repository():
+    from src.database.appraisal_repository import AppraisalRepository
+    return AppraisalRepository()
+
+
+def get_company_repository():
+    from src.database.company_repository import CompanyRepository
+    return CompanyRepository()
 
 
 # ── API Key Auth ──────────────────────────────────────────────────────────────

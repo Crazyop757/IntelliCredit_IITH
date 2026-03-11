@@ -1,5 +1,6 @@
 import axios, { type AxiosError } from 'axios'
 import toast from 'react-hot-toast'
+import { useAuthStore } from '../store/authStore'
 
 const BASE_URL = (import.meta.env.VITE_API_URL as string) || 'http://localhost:8000/api/v1'
 const API_KEY = (import.meta.env.VITE_API_KEY as string) || 'dev-key-change-in-production'
@@ -17,6 +18,11 @@ const client = axios.create({
 client.interceptors.request.use((config) => {
   config.headers['X-API-Key'] = API_KEY
   config.headers['X-Request-ID'] = crypto.randomUUID()
+  // Attach Supabase JWT if the user is authenticated
+  const session = useAuthStore.getState().session
+  if (session?.access_token) {
+    config.headers['Authorization'] = `Bearer ${session.access_token}`
+  }
   return config
 })
 
@@ -55,8 +61,13 @@ client.interceptors.response.use(
       } else if (typeof detail === 'string') {
         toast.error(detail)
       }
-    } else if (error.response.status === 401 || error.response.status === 403) {
-      toast.error('Authentication failed — check your API key', { id: 'auth-error' })
+    } else if (error.response.status === 401) {
+      // Clear auth state and redirect to login
+      useAuthStore.getState().clearAuth()
+      toast.error('Session expired — please sign in again', { id: 'auth-error' })
+      window.location.href = '/auth/login'
+    } else if (error.response.status === 403) {
+      toast.error('Access denied', { id: 'auth-error' })
     } else if (error.response.status === 429) {
       const retryAfter = Number(error.response.headers['retry-after']) || 5
       toast.error(`Rate limited — retrying in ${retryAfter}s`, { id: 'rate-limit' })
@@ -105,4 +116,5 @@ export async function downloadFile(url: string, filename?: string): Promise<void
   URL.revokeObjectURL(link.href)
 }
 
+export { client as apiClient }
 export default client

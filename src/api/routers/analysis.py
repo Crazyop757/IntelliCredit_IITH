@@ -3,6 +3,9 @@ Full pipeline endpoints:
   POST /analysis/pipeline       — async: run 5-stage pipeline, returns job_id
   GET  /analysis/jobs/{id}      — poll job status + results
   GET  /analysis/{company_id}/latest — get latest pipeline results stored for company
+  GET  /analysis/history        — paginated appraisal history for current user
+  GET  /analysis/stats          — aggregate stats for current user
+  GET  /analysis/appraisals/{id} — full appraisal detail
 """
 from __future__ import annotations
 
@@ -10,9 +13,9 @@ import asyncio
 import re
 from typing import Annotated, List, Optional
 
-from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
 
-from src.api.dependencies import AuthDep, JobStoreDep, run_in_thread
+from src.api.dependencies import AuthDep, JobStoreDep, get_current_user, get_appraisal_repository, get_company_repository, run_in_thread
 from src.api.job_store import JobStatus
 from src.api.schemas.common import JobRef, JobStatusResponse
 
@@ -63,6 +66,20 @@ async def run_pipeline(
     itr_file: Annotated[Optional[UploadFile], File(description="Income Tax Return (ITR) PDF/JSON")] = None,
     mca_file: Annotated[Optional[UploadFile], File(description="MCA filing document PDF/JSON")] = None,
 ) -> JobRef:
+    # Extract optional user_id from Bearer JWT (non-fatal if missing/invalid)
+    user_id: str | None = None
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        try:
+            from src.database.supabase_client import get_supabase_admin_client
+            _admin = get_supabase_admin_client()
+            if _admin:
+                _resp = _admin.auth.get_user(auth_header.split(" ", 1)[1])
+                if _resp.user:
+                    user_id = str(_resp.user.id)
+        except Exception as _jwt_exc:
+            import logging as _log
+            _log.getLogger(__name__).warning("JWT extraction failed: %s", _jwt_exc)
     cid = company_id or _slug(company_name)
 
     # Read all bytes eagerly (cannot read in background after response)
@@ -109,8 +126,30 @@ async def run_pipeline(
             "gst_file_count": len(gst_tuples),
             "has_itr": itr_bytes is not None,
             "has_mca": mca_bytes is not None,
+            "user_id": user_id,
         },
     )
+
+    # Pre-create appraisal record in DB if user is authenticated
+    if user_id:
+        try:
+            from src.database.appraisal_repository import AppraisalRepository
+            from src.database.company_repository import CompanyRepository
+            import logging as _log
+            _logger = _log.getLogger(__name__)
+            _logger.info("Persisting pipeline start for user=%s company=%s job=%s", user_id, cid, job.job_id)
+            CompanyRepository().upsert_company(company_id=cid, name=company_name, cin=cin)
+            AppraisalRepository().create_appraisal(
+                user_id=user_id,
+                company_id=cid,
+                company_name=company_name,
+                job_id=job.job_id,
+                loan_amount_requested=loan_amount_requested,
+                fiscal_year=fiscal_year,
+            )
+        except Exception as _exc:
+            import logging as _log
+            _log.getLogger(__name__).error("Pre-create DB write failed: %s", _exc, exc_info=True)
 
     def _pct_to_stage(pct: int) -> str:
         if pct <= 40: return "ingest"
@@ -125,6 +164,7 @@ async def run_pipeline(
         def _cb(pct: int, msg: str):
             progress.append((pct, msg))
             store.set_progress(job.job_id, pct, _pct_to_stage(pct))
+            store.append_log(job.job_id, msg)
 
         try:
             from src.api.services.pipeline_service import run_full_pipeline
@@ -149,8 +189,45 @@ async def run_pipeline(
             )
             result["_progress"] = progress
             await store.update(job.job_id, JobStatus.DONE, result=result)
+            # Persist result to Supabase if user is authenticated
+            if user_id:
+                try:
+                    from src.database.appraisal_repository import AppraisalRepository
+                    import logging as _log
+                    _log.getLogger(__name__).info("Persisting DONE result for job=%s", job.job_id)
+                    # After _normalize_for_frontend the decision/risk fields live under result["score"]
+                    score_data = result.get("score", {}) or {}
+                    raw_rate = score_data.get("recommended_interest_rate")
+                    try:
+                        interest_rate_val = float(raw_rate) if raw_rate is not None else None
+                    except (TypeError, ValueError):
+                        interest_rate_val = None
+                    AppraisalRepository().update_appraisal_result(
+                        job_id=job.job_id,
+                        status="DONE",
+                        result_json=result,
+                        decision=str(score_data.get("decision") or ""),
+                        risk_band=str(score_data.get("risk_band") or ""),
+                        default_probability=score_data.get("default_probability"),
+                        credit_limit=score_data.get("recommended_loan_amount"),
+                        interest_rate=interest_rate_val,
+                    )
+                except Exception as _db_exc:
+                    import logging as _log
+                    _log.getLogger(__name__).error("DONE DB write failed: %s", _db_exc, exc_info=True)
         except Exception as exc:
             await store.update(job.job_id, JobStatus.FAILED, error=str(exc))
+            if user_id:
+                try:
+                    from src.database.appraisal_repository import AppraisalRepository
+                    AppraisalRepository().update_appraisal_result(
+                        job_id=job.job_id,
+                        status="FAILED",
+                        error=str(exc),
+                    )
+                except Exception as _db_exc:
+                    import logging as _log
+                    _log.getLogger(__name__).error("FAILED DB write failed: %s", _db_exc, exc_info=True)
 
     asyncio.create_task(_bg())
 
@@ -254,6 +331,7 @@ async def debug_sample_run(
 
         def _cb(pct: int, msg: str):
             store.set_progress(job.job_id, pct, msg)
+            store.append_log(job.job_id, msg)
 
         try:
             from src.api.services.pipeline_service import run_full_pipeline
@@ -290,3 +368,51 @@ async def debug_sample_run(
         poll_url=f"{base}/api/v1/analysis/jobs/{job.job_id}",
         created_at=job.created_at,
     )
+
+
+# ── GET /analysis/history ─────────────────────────────────────────────────────
+
+@router.get("/history", summary="List appraisal history for the authenticated user")
+async def list_history(
+    current_user: Annotated[dict, Depends(get_current_user)],
+    limit: int = 20,
+    offset: int = 0,
+    status_filter: Optional[str] = None,
+    company_id: Optional[str] = None,
+) -> dict:
+    from src.database.appraisal_repository import AppraisalRepository
+    user_id = current_user.get("sub", "")
+    rows = AppraisalRepository().list_appraisals(
+        user_id=user_id,
+        limit=limit,
+        offset=offset,
+        status=status_filter,
+        company_id=company_id,
+    )
+    return {"appraisals": rows, "count": len(rows), "offset": offset, "limit": limit}
+
+
+# ── GET /analysis/stats ───────────────────────────────────────────────────────
+
+@router.get("/stats", summary="Aggregate appraisal stats for the authenticated user")
+async def get_history_stats(
+    current_user: Annotated[dict, Depends(get_current_user)],
+) -> dict:
+    from src.database.appraisal_repository import AppraisalRepository
+    user_id = current_user.get("sub", "")
+    return AppraisalRepository().get_stats(user_id=user_id)
+
+
+# ── GET /analysis/appraisals/{id} ─────────────────────────────────────────────
+
+@router.get("/appraisals/{appraisal_id}", summary="Get full detail for a single appraisal")
+async def get_appraisal_detail(
+    appraisal_id: str,
+    current_user: Annotated[dict, Depends(get_current_user)],
+) -> dict:
+    from src.database.appraisal_repository import AppraisalRepository
+    user_id = current_user.get("sub", "")
+    row = AppraisalRepository().get_appraisal(appraisal_id=appraisal_id, user_id=user_id)
+    if row is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Appraisal not found")
+    return row

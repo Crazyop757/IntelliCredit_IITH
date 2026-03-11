@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import {
   Download, AlertTriangle, BarChart3, FileText,
   Globe, Building2, Shield, DollarSign, Briefcase,
-  ChevronDown, ChevronUp
+  ChevronDown, ChevronUp, Printer
 } from 'lucide-react'
 import { useSession } from '../hooks/useSession'
 import { useDownload } from '../hooks/useDownload'
@@ -51,6 +51,176 @@ function FiveCSection({ title, content }: { title: string; content?: string }) {
           {content}
         </div>
       )}
+    </div>
+  )
+}
+
+interface CamPreviewProps {
+  company: import('../store/types').Company | null
+  score: import('../store/types').ScoreResult | undefined
+  five_cs: import('../store/types').FiveCsText | undefined
+  financialYears: FinancialYear[]
+  ews: import('../store/types').EWSFlags | undefined
+  onDownload: () => void
+  camLoading: boolean
+}
+
+function CamPreview({ company, score, five_cs, financialYears, ews, onDownload, camLoading }: CamPreviewProps) {
+  const today = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })
+
+  const decisionColor =
+    score?.decision === 'APPROVE' ? 'text-success border-success/40 bg-success/8' :
+    score?.decision === 'REJECT' ? 'text-danger border-danger/40 bg-danger/8' :
+    'text-gold border-gold/40 bg-gold/8'
+
+  const C_LABELS: Record<string, string> = {
+    character: 'Character — Creditworthiness & Integrity',
+    capacity: 'Capacity — Repayment Ability',
+    capital: 'Capital — Financial Strength',
+    collateral: 'Collateral — Security Coverage',
+    conditions: 'Conditions — Market & Economic Context',
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Toolbar */}
+      <div className="flex items-center justify-between">
+        <p className="text-text-muted text-xs">
+          Credit Appraisal Memorandum — formatted document preview
+        </p>
+        <Button
+          size="sm"
+          variant="outline"
+          icon={<Printer size={13} />}
+          loading={camLoading}
+          onClick={onDownload}
+        >
+          Download PDF
+        </Button>
+      </div>
+
+      {/* A4-style document */}
+      <div
+        className="bg-white text-gray-900 rounded-xl shadow-lg overflow-hidden"
+        style={{ fontFamily: 'Georgia, serif' }}
+      >
+        {/* Header */}
+        <div className="bg-slate-800 text-white px-8 py-6">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs text-slate-300 tracking-widest uppercase mb-1">Credit Appraisal Memorandum</p>
+              <h1 className="text-2xl font-bold">{company?.company_name ?? 'Company Name'}</h1>
+              {company?.cin && <p className="text-slate-300 text-sm mt-1">CIN: {company.cin}</p>}
+            </div>
+            <div className="text-right text-sm text-slate-300">
+              <p>{today}</p>
+              {company?.sector && <p className="mt-1">{company.sector}</p>}
+            </div>
+          </div>
+        </div>
+
+        <div className="px-8 py-6 space-y-6">
+          {/* Decision box */}
+          {score && (
+            <div className={`border-2 rounded-lg px-6 py-4 flex items-center justify-between ${decisionColor}`}>
+              <div>
+                <p className="text-xs font-semibold tracking-widest uppercase opacity-70 mb-0.5">Credit Decision</p>
+                <p className="text-xl font-bold">{score.decision}</p>
+                {score.decision_rationale && (
+                  <p className="text-sm mt-1 opacity-80 max-w-xl">{score.decision_rationale}</p>
+                )}
+              </div>
+              <div className="text-right">
+                <p className="text-3xl font-bold">{score.risk_score.toFixed(1)}<span className="text-base font-normal opacity-60">/10</span></p>
+                <p className="text-xs opacity-70 mt-0.5">Risk Score · {score.risk_band}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Key metrics table */}
+          {score && (
+            <div>
+              <h2 className="text-base font-bold text-slate-700 border-b border-slate-200 pb-2 mb-3" style={{ fontFamily: 'sans-serif' }}>
+                Financing Summary
+              </h2>
+              <table className="w-full text-sm border-collapse">
+                <tbody>
+                  {[
+                    ['Default Probability', score.default_probability != null ? `${(score.default_probability * 100).toFixed(2)}%` : '—'],
+                    ['Recommended Loan Amount', score.recommended_loan_amount != null ? formatCrore(score.recommended_loan_amount) : '—'],
+                    ['Recommended Interest Rate', score.recommended_interest_rate ?? '—'],
+                    ['Tenure', score.recommended_tenure_months != null ? `${score.recommended_tenure_months} months` : '—'],
+                    ['EWS Classification', ews?.sma_classification ?? '—'],
+                    ['EWS Score', ews?.ews_score != null ? ews.ews_score.toFixed(2) : '—'],
+                  ].map(([label, value]) => (
+                    <tr key={label} className="border-b border-slate-100">
+                      <td className="py-2 pr-4 text-slate-500 font-medium w-56">{label}</td>
+                      <td className="py-2 text-slate-800 font-semibold">{value}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Financial summary table */}
+          {financialYears.length > 0 && (
+            <div>
+              <h2 className="text-base font-bold text-slate-700 border-b border-slate-200 pb-2 mb-3" style={{ fontFamily: 'sans-serif' }}>
+                Financial Performance (₹ Crores)
+              </h2>
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="bg-slate-50">
+                    {['FY', 'Revenue', 'EBITDA', 'PAT', 'DSCR', 'D/E', 'Current Ratio'].map((h) => (
+                      <th key={h} className="text-left text-slate-600 font-semibold px-3 py-2 border border-slate-200">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {financialYears.map((fy) => (
+                    <tr key={fy.year} className="border-b border-slate-100">
+                      <td className="px-3 py-2 border border-slate-200 font-semibold text-slate-700">{fy.year}</td>
+                      <td className="px-3 py-2 border border-slate-200">{fy.revenue?.toFixed(2) ?? '—'}</td>
+                      <td className="px-3 py-2 border border-slate-200">{fy.ebitda?.toFixed(2) ?? '—'}</td>
+                      <td className="px-3 py-2 border border-slate-200">{fy.pat?.toFixed(2) ?? '—'}</td>
+                      <td className="px-3 py-2 border border-slate-200">{fy.dscr?.toFixed(2) ?? '—'}</td>
+                      <td className="px-3 py-2 border border-slate-200">{fy.debt_equity?.toFixed(2) ?? '—'}</td>
+                      <td className="px-3 py-2 border border-slate-200">{fy.current_ratio?.toFixed(2) ?? '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Five C's */}
+          {five_cs && Object.values(five_cs).some(Boolean) && (
+            <div>
+              <h2 className="text-base font-bold text-slate-700 border-b border-slate-200 pb-2 mb-4" style={{ fontFamily: 'sans-serif' }}>
+                Credit Assessment — Five C's
+              </h2>
+              <div className="space-y-4">
+                {(Object.entries(C_LABELS) as [keyof typeof five_cs, string][]).map(([key, title]) =>
+                  five_cs[key] ? (
+                    <div key={key}>
+                      <h3 className="text-sm font-bold text-slate-600 mb-1.5" style={{ fontFamily: 'sans-serif' }}>
+                        {title}
+                      </h3>
+                      <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{five_cs[key]}</p>
+                    </div>
+                  ) : null
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="border-t border-slate-200 pt-4 text-xs text-slate-400 text-center">
+            Generated by IntelliCredit AI · {today} · Confidential — For internal use only
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -167,6 +337,7 @@ export default function Results() {
             <TabTrigger value="research" icon={<Globe size={14} />}>Research</TabTrigger>
             <TabTrigger value="fivecs" icon={<Briefcase size={14} />}>Five C's</TabTrigger>
             <TabTrigger value="shap" icon={<Shield size={14} />}>SHAP</TabTrigger>
+            <TabTrigger value="cam" icon={<FileText size={14} />}>CAM Preview</TabTrigger>
           </TabList>
 
           {/* Overview */}
@@ -429,6 +600,19 @@ export default function Results() {
             ) : (
               <p className="text-text-muted text-sm py-8 text-center">No SHAP explanations available</p>
             )}
+          </TabContent>
+
+          {/* CAM Preview */}
+          <TabContent value="cam" className="p-6">
+            <CamPreview
+              company={company}
+              score={score}
+              five_cs={five_cs}
+              financialYears={financialYears}
+              ews={ews}
+              onDownload={handleDownload}
+              camLoading={camLoading}
+            />
           </TabContent>
         </Tabs>
       </Card>

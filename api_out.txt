@@ -1,0 +1,26 @@
+
+============================================================
+  FinSight API
+  http://0.0.0.0:8000
+  Docs -> http://localhost:8000/docs
+============================================================
+
+2026-03-11 22:08:24,528 INFO     finsight.api  FinSight API starting up...
+2026-03-11 22:08:24,532 INFO     src.api.dependencies  Running startup validation…
+2026-03-11 22:08:24,575 INFO     src.api.dependencies  Tectonic available: tectonic 0.15.0Tectonic 0.15.0
+2026-03-11 22:08:24,576 WARNING  src.api.dependencies  ANTHROPIC_API_KEY not set — LLM features will use rule-based fallback.
+2026-03-11 22:08:24,577 WARNING  src.api.dependencies  TAVILY_API_KEY not set — news tool will return empty results.
+2026-03-11 22:08:27,743 INFO     src.api.dependencies  GNN checkpoint validated: models\gnn_fraud_detector.pt
+2026-03-11 22:08:27,749 INFO     src.api.dependencies  Loading NERExtractor models…
+2026-03-11 22:08:27,751 INFO     src.api.dependencies  NERExtractor ready.
+2026-03-11 22:08:28,281 INFO     src.api.dependencies  Loading CreditScorer model…
+2026-03-11 22:08:30,597 INFO     intelli_credit.scorer.credit_scorer  Model loaded from C:\Users\Rudra Kushwah\Documents\CODING\iith_fafo7\intelli_credit\models\credit_scorer.pkl
+2026-03-11 22:08:30,599 INFO     src.api.dependencies  CreditScorer ready (model loaded).
+2026-03-11 22:08:30,600 INFO     src.api.dependencies  Startup validation complete. Component health: {'tectonic': 'available', 'anthropic_api': 'missing', 'tavily_api': 'missing', 'delta_lake': 'local_fallback', 'gnn': 'loaded', 'finbert': 'loaded', 'bert_ner': 'loaded', 'lightgbm': 'loaded'}
+2026-03-11 22:08:35,379 INFO     intelli.access  GET /api/v1/health 200 2.9ms req_id=3a23b989-f9ac-461c-abe2-82bfb3d04c6d
+2026-03-11 22:09:15,585 INFO     intelli.access  GET /api/v1/auth/me 401 3.6ms req_id=abd7aaed-6849-4cc8-bbfa-14e9f6802ff0
+2026-03-11 22:09:16,435 INFO     intelli.access  GET /api/v1/auth/me 401 470.8ms req_id=f89a2225-7a63-4471-89d5-5093d3628f47
+2026-03-11 22:09:16,593 INFO     intelli.access  GET /docs 200 0.7ms req_id=178fe39e-9440-4cb7-b88e-c4e5151e1d47
+2026-03-11 22:15:58,592 INFO     intelli.access  GET /api/v1/health 200 1.9ms req_id=65b9434c-e498-4deb-b853-ad19712a1979
+2026-03-11 22:16:00,614 INFO     intelli.access  GET /api/v1/auth/me 401 1.4ms req_id=898dd330-fab8-4cf5-8c29-eb3cd0172b35
+2026-03-11 22:16:02,629 INFO     intelli.access  GET /api/v1/auth/me 401 0.8ms req_id=cef8a7cb-bc4a-4d49-951c-dcfdf253f9c6

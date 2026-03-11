@@ -9,6 +9,10 @@ services:
       context: .
       dockerfile: Dockerfile
     env_file: .env
+    environment:
+      - FINSIGHT_SUPABASE_URL=${FINSIGHT_SUPABASE_URL:-}
+      - FINSIGHT_SUPABASE_SERVICE_ROLE_KEY=${FINSIGHT_SUPABASE_SERVICE_ROLE_KEY:-}
+      - FINSIGHT_SUPABASE_JWT_SECRET=${FINSIGHT_SUPABASE_JWT_SECRET:-}
     ports:
       - "8000:8000"
     volumes:

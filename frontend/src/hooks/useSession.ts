@@ -4,6 +4,7 @@ import type { Company, FullPipelineResult, PipelineJob, QualitativeFormData } fr
 
 export function useSession() {
   const session_id = useSessionStore((s) => s.session_id)
+  const owner_user_id = useSessionStore((s) => s.owner_user_id)
   const company = useSessionStore((s) => s.company)
   const job_id = useSessionStore((s) => s.job_id)
   const results = useSessionStore((s) => s.results)
@@ -11,6 +12,7 @@ export function useSession() {
   const last_appraised_at = useSessionStore((s) => s.last_appraised_at)
 
   const setSession = useSessionStore((s) => s.setSession)
+  const setOwnerUserId = useSessionStore((s) => s.setOwnerUserId)
   const setCompany = useSessionStore((s) => s.setCompany)
   const setJobId = useSessionStore((s) => s.setJobId)
   const setResults = useSessionStore((s) => s.setResults)
@@ -53,6 +55,7 @@ export function useSession() {
 
   return {
     session_id,
+    owner_user_id,
     company,
     job_id,
     results,
@@ -63,6 +66,7 @@ export function useSession() {
     recordResults,
     recordQualitative,
     setPipelineStatus,
+    setOwnerUserId,
     reset,
   }
 }

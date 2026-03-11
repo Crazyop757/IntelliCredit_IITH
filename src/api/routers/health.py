@@ -60,7 +60,7 @@ async def health() -> dict[str, Any]:
 
     return {
         "status": overall_status,
-        "service": "intelli-credit-api",
+        "service": "finsight-api",
         "components": components,
     }
 

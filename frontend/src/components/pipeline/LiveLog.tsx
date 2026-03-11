@@ -4,9 +4,10 @@ import { Terminal } from 'lucide-react'
 interface LiveLogProps {
   lines: string[]
   maxLines?: number
+  isRunning?: boolean
 }
 
-export default function LiveLog({ lines, maxLines = 200 }: LiveLogProps) {
+export default function LiveLog({ lines, maxLines = 200, isRunning = false }: LiveLogProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -23,10 +24,10 @@ export default function LiveLog({ lines, maxLines = 200 }: LiveLogProps) {
 
   const getLineColor = (line: string) => {
     const l = line.toLowerCase()
-    if (l.includes('error') || l.includes('failed') || l.includes('exception')) return 'text-danger'
-    if (l.includes('warn') || l.includes('warning')) return 'text-gold'
-    if (l.includes('done') || l.includes('success') || l.includes('complete')) return 'text-success'
-    if (l.includes('running') || l.includes('processing') || l.includes('start')) return 'text-primary'
+    if (l.includes('error') || l.includes('failed') || l.includes('exception') || l.startsWith('❌')) return 'text-danger'
+    if (l.includes('warn') || l.includes('warning') || l.startsWith('⚠')) return 'text-gold'
+    if (l.includes('done') || l.includes('success') || l.includes('complete') || l.startsWith('✅') || l.startsWith('✓')) return 'text-success'
+    if (l.includes('running') || l.includes('processing') || l.includes('start') || l.startsWith('🔄') || l.startsWith('→')) return 'text-primary'
     return 'text-text-secondary'
   }
 
@@ -40,11 +41,20 @@ export default function LiveLog({ lines, maxLines = 200 }: LiveLogProps) {
         </div>
         <Terminal size={13} className="text-text-muted" />
         <span className="text-xs text-text-muted font-mono">pipeline.log</span>
+        {isRunning && (
+          <span className="flex items-center gap-1 text-xs text-success font-mono ml-1">
+            <span
+              className="inline-block w-1.5 h-1.5 rounded-full bg-success"
+              style={{ animation: 'pulse 1s ease-in-out infinite' }}
+            />
+            live
+          </span>
+        )}
         <span className="ml-auto text-xs text-text-muted">{lines.length} entries</span>
       </div>
       <div
         ref={containerRef}
-        className="h-52 overflow-y-auto p-4 font-mono text-xs space-y-0.5"
+        className="h-72 overflow-y-auto p-4 font-mono text-xs space-y-0.5"
         style={{ scrollbarWidth: 'thin', scrollbarColor: '#1E2D45 transparent' }}
       >
         {visibleLines.length === 0 ? (
@@ -56,8 +66,19 @@ export default function LiveLog({ lines, maxLines = 200 }: LiveLogProps) {
             </div>
           ))
         )}
+        {isRunning && (
+          <div className="text-text-muted leading-5">
+            <span
+              className="inline-block w-1.5 h-3 bg-text-muted/60 align-middle ml-0.5"
+              style={{ animation: 'blink 1s step-end infinite' }}
+            />
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
+      <style>{`
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+      `}</style>
     </div>
   )
 }

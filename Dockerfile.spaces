@@ -30,18 +30,21 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application
+# Copy application code
 COPY src/ src/
-COPY models/ models/
-COPY configs/ configs/
+COPY models/pipeline_models.py models/pipeline_models.py
 COPY scripts/ scripts/
 COPY run_api.py .
 COPY .env.example .env.example
 
-# Copy built frontend
+# Download HuggingFace models + train bootstrap ML models at build time
+# This bakes them into the image so startup is fast
+RUN python scripts/download_models.py
+
+# Copy built frontend from stage 1
 COPY --from=frontend-build /app/dist /app/frontend_dist
 
-# Create directories
+# Create data directories
 RUN mkdir -p data/raw data/bronze data/silver data/gold outputs/cam_reports
 
 # HF Spaces requires port 7860

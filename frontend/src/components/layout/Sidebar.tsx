@@ -1,23 +1,21 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
-  LayoutDashboard, PlusCircle, Activity, ClipboardList,
-  BarChart3, Building2, ChevronLeft, ChevronRight, Zap,
+  LayoutDashboard, PlusCircle,
+  Building2, ChevronLeft, ChevronRight, History, User, LogOut,
 } from 'lucide-react'
 import { useUIStore } from '../../store/uiStore'
 import { useSessionStore } from '../../store/sessionStore'
+import { useAuthStore } from '../../store/authStore'
+import { supabase } from '../../lib/supabase'
 import { get } from '../../api/client'
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { to: '/new', label: 'New Appraisal', icon: PlusCircle },
+  { to: '/history', label: 'History', icon: History },
   { to: '/companies', label: 'Companies', icon: Building2 },
-]
-
-const sessionNavItems = [
-  { to: '/analysis', label: 'Live Analysis', icon: Activity },
-  { to: '/qualitative', label: 'Qualitative', icon: ClipboardList },
-  { to: '/results', label: 'Results', icon: BarChart3 },
+  { to: '/profile', label: 'Profile', icon: User },
 ]
 
 export default function Sidebar() {
@@ -25,8 +23,9 @@ export default function Sidebar() {
   const setCollapsed = useUIStore((s) => s.setSidebarCollapsed)
   const apiOnline = useUIStore((s) => s.apiOnline)
   const setApiOnline = useUIStore((s) => s.setApiOnline)
-  const jobId = useSessionStore((s) => s.job_id)
-  const company = useSessionStore((s) => s.company)
+  const clearAuth = useAuthStore((s) => s.clearAuth)
+  const navigate = useNavigate()
+  const [signingOut, setSigningOut] = useState(false)
 
   useEffect(() => {
     const check = async () => {
@@ -42,7 +41,16 @@ export default function Sidebar() {
     return () => clearInterval(interval)
   }, [setApiOnline])
 
-  const hasSession = !!jobId || !!company
+  async function handleLogout() {
+    setSigningOut(true)
+    try {
+      await supabase.auth.signOut()
+    } finally {
+      clearAuth()
+      setSigningOut(false)
+      navigate('/')
+    }
+  }
 
   return (
     <aside
@@ -52,21 +60,30 @@ export default function Sidebar() {
         collapsed ? 'w-16' : 'w-64',
       ].join(' ')}
     >
-      {/* Logo */}
-      <div className={[
-        'flex items-center h-16 border-b border-border-dark px-4 flex-shrink-0',
-        collapsed ? 'justify-center' : 'gap-3',
-      ].join(' ')}>
-        <div className="w-8 h-8 rounded-xl bg-gradient-primary flex items-center justify-center flex-shrink-0 shadow-sm">
-          <span className="text-white font-bold text-xs tracking-tight">IC</span>
-        </div>
-        {!collapsed && (
+      {/* Logo — click to return to landing page */}
+      <NavLink
+        to="/"
+        className={[
+          'flex items-center h-16 border-b border-border-dark px-4 flex-shrink-0 group',
+          collapsed ? 'justify-center' : 'gap-3',
+        ].join(' ')}
+        title="Back to Home"
+      >
+        {collapsed ? (
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
+            <span style={{ fontSize: 14, fontWeight: 800, color: '#fff', letterSpacing: -0.5 }}>F</span>
+            <span style={{ fontSize: 14, fontWeight: 800, color: '#2563EB', letterSpacing: -0.5 }}>S</span>
+          </div>
+        ) : (
           <div>
-            <p className="text-text-primary font-bold text-sm leading-tight">IntelliCredit</p>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
+              <span style={{ fontSize: 15, fontWeight: 800, color: '#fff', letterSpacing: -0.5 }}>Fin</span>
+              <span style={{ fontSize: 15, fontWeight: 800, color: '#2563EB', letterSpacing: -0.5 }}>Sight</span>
+            </div>
             <p className="text-text-muted text-[11px]">Credit Intelligence AI</p>
           </div>
         )}
-      </div>
+      </NavLink>
 
       {/* Nav */}
       <nav className="flex-1 py-3 overflow-y-auto">
@@ -76,20 +93,6 @@ export default function Sidebar() {
         {navItems.map((item) => (
           <NavItem key={item.to} {...item} collapsed={collapsed} />
         ))}
-
-        {hasSession && (
-          <>
-            {!collapsed && (
-              <p className="text-text-muted text-[10px] font-semibold uppercase tracking-widest px-5 mt-5 mb-2">
-                Current Session
-              </p>
-            )}
-            {!collapsed && <div className="mx-4 mb-2 h-px bg-border-dark" />}
-            {sessionNavItems.map((item) => (
-              <NavItem key={item.to} {...item} collapsed={collapsed} />
-            ))}
-          </>
-        )}
       </nav>
 
       {/* Footer */}
@@ -103,6 +106,16 @@ export default function Sidebar() {
             <span className="text-xs text-text-secondary">{apiOnline ? 'API Online' : 'API Offline'}</span>
           </div>
         )}
+        <button
+          onClick={handleLogout}
+          disabled={signingOut}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-text-secondary hover:text-red-400 hover:bg-red-500/10 transition-colors"
+          aria-label="Log out"
+          title={collapsed ? 'Log out' : undefined}
+        >
+          <LogOut size={15} className="flex-shrink-0" />
+          {!collapsed && <span className="text-sm">{signingOut ? 'Signing out…' : 'Log out'}</span>}
+        </button>
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="w-full flex items-center justify-center p-2 rounded-lg text-text-secondary hover:text-primary hover:bg-primary-light transition-colors"
