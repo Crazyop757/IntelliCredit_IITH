@@ -32,6 +32,7 @@ import logging
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
+from threading import Lock
 from typing import Any
 
 logger = logging.getLogger("intelli_credit.ingestor.delta_writer")
@@ -75,10 +76,19 @@ def _quality_flag(revenue: float | None) -> str:
 
 
 def _append_jsonl(filepath: Path, record: dict) -> None:
-    """Append *record* as a single JSON line to *filepath* (creates if absent)."""
-    with filepath.open("a", encoding="utf-8") as fh:
-        fh.write(json.dumps(record, ensure_ascii=False) + "\n")
+    """Append *record* as a single JSON line to *filepath* (creates if absent).
+
+    Uses a module-level lock to prevent concurrent writes from corrupting
+    the file when multiple pipeline jobs run in parallel.
+    """
+    with _JSONL_LOCK:
+        with filepath.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(record, ensure_ascii=False) + "\n")
     logger.debug("Appended record to %s", filepath)
+
+
+# Module-level write lock for JSONL file safety
+_JSONL_LOCK = Lock()
 
 
 def _read_jsonl(filepath: Path) -> list[dict]:

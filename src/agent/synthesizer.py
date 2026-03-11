@@ -50,9 +50,21 @@ import anthropic  # noqa: E402
 logger = logging.getLogger("intelli_credit.agent.synthesizer")
 
 # ---------------------------------------------------------------------------
-# Constants
+# Constants — import from centralised config where available
 # ---------------------------------------------------------------------------
-_CLAUDE_MODEL = "claude-haiku-4-5-20251001"   # fastest model available; update as needed
+try:
+    from src.config import (  # noqa: E402
+        CLAUDE_MODEL as _CFG_CLAUDE_MODEL,
+        CLAUDE_MAX_TOKENS as _CFG_MAX_TOKENS,
+        SYNTH_DIVERGENCE_THRESHOLD as _CFG_DIVERGENCE,
+    )
+    _CLAUDE_MODEL = _CFG_CLAUDE_MODEL
+    _CLAUDE_MAX_TOKENS = _CFG_MAX_TOKENS
+    _DIVERGENCE_THRESHOLD = _CFG_DIVERGENCE
+except ImportError:
+    _CLAUDE_MODEL = "claude-haiku-4-5-20251001"
+    _CLAUDE_MAX_TOKENS = 1024
+    _DIVERGENCE_THRESHOLD = 2.5
 
 # Required keys that every synthesis dict must contain
 REQUIRED_FIELDS: tuple[str, ...] = (
@@ -215,7 +227,7 @@ class SynthesizerAgent:
 
         # ── Divergence check ─────────────────────────────────────────────
         divergence = abs(llm_score - rb_score)
-        if divergence > 2.5:
+        if divergence > _DIVERGENCE_THRESHOLD:
             logger.warning(
                 "compute_external_score: LLM score %.1f diverges from rule-based "
                 "score %.1f by %.1f — averaging.",
@@ -271,7 +283,7 @@ class SynthesizerAgent:
         client   = anthropic.Anthropic(api_key=self._api_key)
         response = client.messages.create(
             model=_CLAUDE_MODEL,
-            max_tokens=1024,
+            max_tokens=_CLAUDE_MAX_TOKENS,
             messages=[{"role": "user", "content": user_msg}],
             system=_SYSTEM_PROMPT,
         )

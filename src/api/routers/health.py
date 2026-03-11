@@ -11,9 +11,58 @@ from fastapi import APIRouter
 router = APIRouter(tags=["health"])
 
 
-@router.get("/health", summary="Liveness probe")
+@router.get("/health", summary="Liveness probe + component health")
 async def health() -> dict[str, Any]:
-    return {"status": "ok", "service": "intelli-credit-api"}
+    """
+    Returns overall system status and per-component health.
+
+    status:
+      - "ok"       : all components loaded
+      - "degraded" : some components unavailable (system still functional)
+      - "offline"  : critical components failed
+    """
+    from src.api.dependencies import get_component_health
+
+    components = get_component_health()
+
+    # Fill defaults for any components not yet validated
+    defaults = {
+        "finbert": "unknown",
+        "bert_ner": "unknown",
+        "lightgbm": "unknown",
+        "gnn": "unknown",
+        "tectonic": "unknown",
+        "anthropic_api": "unknown",
+        "tavily_api": "unknown",
+        "delta_lake": "unknown",
+    }
+    for k, v in defaults.items():
+        if k not in components:
+            components[k] = v
+
+    # Determine overall status
+    error_components = [k for k, v in components.items() if v == "error"]
+    degraded_indicators = ["missing", "untrained", "unknown", "error"]
+    degraded_components = [
+        k for k, v in components.items()
+        if v in degraded_indicators
+    ]
+
+    # Critical components: if finbert or lightgbm has "error", system is degraded
+    critical_errors = [k for k in error_components if k in ("finbert", "bert_ner")]
+
+    if critical_errors:
+        overall_status = "offline"
+    elif degraded_components:
+        overall_status = "degraded"
+    else:
+        overall_status = "ok"
+
+    return {
+        "status": overall_status,
+        "service": "intelli-credit-api",
+        "components": components,
+    }
 
 
 @router.get("/health/ready", summary="Readiness probe — checks model loaded")

@@ -27,15 +27,17 @@ class APISettings(BaseSettings):
     disable_auth: bool = False
 
     # ── CORS ───────────────────────────────────────────────────────────
+    # Override in production via INTELLI_CORS_ORIGINS env var (JSON list)
     cors_origins: List[str] = [
         "http://localhost:3000",
         "http://localhost:8501",
         "http://localhost:8000",
+        "https://intelli-credit-frontend.onrender.com",
     ]
 
     # ── Server ─────────────────────────────────────────────────────────
     host: str = "0.0.0.0"
-    port: int = 8000
+    port: int = int(os.environ.get("PORT", "8000"))  # Render sets PORT
     reload: bool = False
     debug: bool = False
 
@@ -47,12 +49,18 @@ class APISettings(BaseSettings):
 
     # ── Upstream integration ───────────────────────────────────────────
     anthropic_api_key: str = ""
+    tavily_api_key: str = ""
 
-    # ── Background workers ─────────────────────────────────────────────
+    # ── Background workers ─────────────────────────────────────────
     # Max threads in the executor for sync-heavy pipeline tasks
     max_pipeline_workers: int = 4
     # Max jobs kept in memory (oldest evicted when exceeded)
     job_store_max_size: int = 500
+
+    # ── File upload limits (bytes) ─────────────────────────────────
+    max_pdf_size: int = 50 * 1024 * 1024     # 50 MB
+    max_bank_csv_size: int = 10 * 1024 * 1024  # 10 MB
+    max_gst_json_size: int = 5 * 1024 * 1024   # 5 MB
 
     @field_validator("outputs_dir", "data_dir", mode="before")
     @classmethod

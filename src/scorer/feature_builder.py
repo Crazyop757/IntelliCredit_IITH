@@ -44,7 +44,10 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
-from src.config import DATA_GOLD, DATA_RAW, DATA_SILVER  # noqa: E402
+from src.config import (  # noqa: E402
+    DATA_GOLD, DATA_RAW, DATA_SILVER,
+    SAFE_DEFAULT_GST_HEALTH, SAFE_DEFAULT_NEWS_RISK,
+)
 
 logger = logging.getLogger("intelli_credit.scorer.feature_builder")
 
@@ -205,12 +208,31 @@ class FeatureBuilder:
         cid = company_id.strip().upper()
         logger.info("[%s] Building feature vector …", cid)
 
+        # Track which features are imputed vs extracted
+        imputed_flags: dict[str, bool] = {}
+
         # ── Load data sources ─────────────────────────────────────────
         silver   = self._load_silver(cid)
         bank     = self._load_bank_metrics(cid)
         ews      = self._load_ews(cid)
         research = self._load_research(cid)
         qual     = self._load_qualitative(cid)
+
+        # ── Track source availability ────────────────────────────────
+        if not silver.get("_records"):
+            for f in ("debt_to_equity", "current_ratio", "interest_coverage",
+                      "dscr", "pat_margin", "roce", "revenue_growth_3y"):
+                imputed_flags[f] = True
+        if bank.get("avg_monthly_balance", 0.0) == 0.0 and bank.get("bounce_count", 0.0) == 0.0:
+            for f in ("avg_monthly_balance", "debit_credit_ratio", "bounce_count", "upi_concentration"):
+                imputed_flags[f] = True
+        if not ews:
+            for f in ("gst_health_score", "itc_gap_pct", "turnover_consistency", "filing_regularity",
+                      "ews_score", "gnn_high_risk_gstin_count"):
+                imputed_flags[f] = True
+        if not research:
+            for f in ("news_risk_score", "litigation_count", "ecourts_severity_score"):
+                imputed_flags[f] = True
 
         # ── Extract sub-groups ────────────────────────────────────────
         fin   = self._extract_financials(silver)
@@ -276,9 +298,17 @@ class FeatureBuilder:
         # Coerce all values to float (guards against stray ints/bools)
         fv = {k: float(v) for k, v in fv.items()}
 
+        # Log imputed features for audit trail
+        if imputed_flags:
+            logger.warning(
+                "[%s] %d features imputed (source data unavailable): %s",
+                cid, len(imputed_flags), sorted(imputed_flags.keys()),
+            )
+
         self._persist_gold(cid, fv)
 
-        logger.info("[%s] Feature vector assembled (%d features).", cid, len(fv))
+        logger.info("[%s] Feature vector assembled (%d features, %d imputed).",
+                    cid, len(fv), len(imputed_flags))
         return fv, list(self.FEATURE_NAMES)
 
     # ==================================================================

@@ -92,7 +92,11 @@ _DEFAULT_MODEL_PATH = MODELS_DIR / "gnn_fraud_detector.pt"
 # ---------------------------------------------------------------------------
 # Hyper-parameters / thresholds
 # ---------------------------------------------------------------------------
-_MIN_FRAUD_SAMPLES   = 5      # fewer labelled fraud nodes → rule-based fallback
+try:
+    from src.config import GNN_MIN_TRAINING_SAMPLES  # noqa: E402
+    _MIN_FRAUD_SAMPLES = GNN_MIN_TRAINING_SAMPLES
+except ImportError:
+    _MIN_FRAUD_SAMPLES = 5      # fewer labelled fraud nodes → rule-based fallback
 _FRAUD_THRESHOLD     = 0.70   # P ≥ 0.70 → HIGH_RISK
 _MEDIUM_THRESHOLD    = 0.40   # P ≥ 0.40 → MEDIUM_RISK
 

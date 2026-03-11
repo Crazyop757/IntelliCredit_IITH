@@ -79,7 +79,12 @@ _NEXT_SECTION_RE = re.compile(
 )
 
 # Sentiment score below which the auditor opinion is flagged
-_AUDITOR_FLAG_THRESHOLD = -0.3
+# Import from centralised config; fall back to -0.3 if config not available
+try:
+    from src.config import AUDITOR_SENTIMENT_THRESHOLD  # noqa: E402
+    _AUDITOR_FLAG_THRESHOLD = AUDITOR_SENTIMENT_THRESHOLD
+except ImportError:
+    _AUDITOR_FLAG_THRESHOLD = -0.3
 
 
 # ---------------------------------------------------------------------------

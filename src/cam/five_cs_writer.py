@@ -63,13 +63,22 @@ import anthropic                         # noqa: E402
 logger = logging.getLogger("intelli_credit.cam.five_cs_writer")
 
 # ---------------------------------------------------------------------------
-# Constants
+# Constants — import from centralised config where available
 # ---------------------------------------------------------------------------
-# Use the same model as the rest of the project.  Override via constructor.
-_CLAUDE_MODEL = "claude-haiku-4-5-20251001"
+try:
+    from src.config import (  # noqa: E402
+        CLAUDE_MODEL as _CFG_CLAUDE_MODEL,
+        CLAUDE_MAX_TOKENS as _CFG_MAX_TOKENS,
+    )
+    _CLAUDE_MODEL = _CFG_CLAUDE_MODEL
+except ImportError:
+    _CLAUDE_MODEL = "claude-haiku-4-5-20251001"
 
 # CAM sections require at least 150 words (2-3 paragraphs, 150-200 target).
 _CAM_MIN_WORDS = 150
+
+# Maximum number of LLM regeneration attempts to avoid infinite loops
+_MAX_REGEN_ATTEMPTS = 2
 
 # Expansion prompt reused by regenerate_if_short
 _EXPAND_SYSTEM = (
@@ -718,12 +727,16 @@ class FiveCsWriter:
             text   = self._fallback_text(section)
             method = "fallback"
 
-        # ── Length guard ──────────────────────────────────────────────
+        # ── Length guard (capped at _MAX_REGEN_ATTEMPTS) ──────────────
         if method == "llm":
-            expanded = self.regenerate_if_short(text, min_words=_CAM_MIN_WORDS)
-            if expanded != text:
+            for _attempt in range(_MAX_REGEN_ATTEMPTS):
+                expanded = self.regenerate_if_short(text, min_words=_CAM_MIN_WORDS)
+                if expanded == text:
+                    break
                 text        = expanded
                 regenerated = True
+                if len(text.split()) >= _CAM_MIN_WORDS:
+                    break
 
         word_count = len(text.split())
 

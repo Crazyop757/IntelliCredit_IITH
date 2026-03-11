@@ -1,8 +1,8 @@
 """
 CAM generation endpoints:
-  POST /cam/generate          — async: generate CAM Word doc, returns job_id
+  POST /cam/generate          — async: generate CAM PDF (via LaTeX), returns job_id
   GET  /cam/jobs/{id}         — poll job / check status
-  GET  /cam/jobs/{id}/download — stream the Word document
+  GET  /cam/jobs/{id}/download — stream the PDF document
   POST /cam/five-cs           — generate Five C's narrative (sync)
 """
 from __future__ import annotations
@@ -30,7 +30,7 @@ router = APIRouter(prefix="/cam", tags=["cam"])
     "/generate",
     response_model=JobRef,
     status_code=status.HTTP_202_ACCEPTED,
-    summary="Asynchronously generate a Credit Assessment Memorandum (.docx)",
+    summary="Asynchronously generate a Credit Assessment Memorandum (PDF via LaTeX)",
 )
 async def generate_cam(
     _auth: AuthDep,
@@ -99,7 +99,7 @@ def _generate_cam_sync(body: CAMGenerateRequest, job_id: str) -> dict:
     }
     research = body.research_report or {}
 
-    out_path = settings.outputs_dir / f"CAM_{body.company_id}_{job_id[:8]}.docx"
+    out_path = settings.outputs_dir / f"CAM_{body.company_id}_{job_id[:8]}.pdf"
     path = generate_cam(
         company_data=company_data,
         scoring_result=scoring,
@@ -146,7 +146,7 @@ async def cam_job_status(
 
 @router.get(
     "/jobs/{job_id}/download",
-    summary="Download the generated CAM Word document",
+    summary="Download the generated CAM PDF document",
 )
 async def download_cam(
     _auth: AuthDep,
@@ -170,7 +170,7 @@ async def download_cam(
 
     return FileResponse(
         path=str(file_path),
-        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        media_type="application/pdf",
         filename=file_path.name,
     )
 

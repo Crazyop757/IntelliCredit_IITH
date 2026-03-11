@@ -1,0 +1,795 @@
+{
+  "gstin": "08AABCA4321M1ZX",
+  "legal_name": "Aravali Polymers & Packaging Pvt. Ltd.",
+  "financial_year": "2023-24",
+  "return_type": "GSTR-2A",
+  "auto_populated_credits": [
+    {
+      "month": "Apr-23",
+      "supplier_gstin": "08AABCA9988M1ZY",
+      "supplier_name": "Rajasthan Polymers Suppliers",
+      "invoice_no": "INV/Apr-23/6378",
+      "taxable_value": 154312.66,
+      "igst_available": 27776.28,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Apr-23",
+      "supplier_gstin": "08AABCB1122M1ZZ",
+      "supplier_name": "Northern India Packaging Raw Mat",
+      "invoice_no": "INV/Apr-23/2137",
+      "taxable_value": 157729.83,
+      "igst_available": 28391.37,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Apr-23",
+      "supplier_gstin": "27AABCC3344M1ZA",
+      "supplier_name": "Maharashtra Resin Traders",
+      "invoice_no": "INV/Apr-23/5573",
+      "taxable_value": 185247.15,
+      "igst_available": 33344.49,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Apr-23",
+      "supplier_gstin": "07AABCD5566M1ZB",
+      "supplier_name": "Delhi Chemicals Distributors",
+      "invoice_no": "INV/Apr-23/9346",
+      "taxable_value": 160630.07,
+      "igst_available": 28913.41,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Apr-23",
+      "supplier_gstin": "08AABCE7788M1ZC",
+      "supplier_name": "Sarvottam Traders Pvt Ltd",
+      "invoice_no": "INV/Apr-23/6098",
+      "taxable_value": 477549.46,
+      "igst_available": 85958.9,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Apr-23",
+      "supplier_gstin": "08AABCF9900M1ZD",
+      "supplier_name": "Shree Balaji Impex LLP",
+      "invoice_no": "INV/Apr-23/6796",
+      "taxable_value": 353588.07,
+      "igst_available": 63645.85,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "May-23",
+      "supplier_gstin": "08AABCA9988M1ZY",
+      "supplier_name": "Rajasthan Polymers Suppliers",
+      "invoice_no": "INV/May-23/9379",
+      "taxable_value": 145107.29,
+      "igst_available": 26119.31,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "May-23",
+      "supplier_gstin": "08AABCB1122M1ZZ",
+      "supplier_name": "Northern India Packaging Raw Mat",
+      "invoice_no": "INV/May-23/4114",
+      "taxable_value": 137887.86,
+      "igst_available": 24819.82,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "May-23",
+      "supplier_gstin": "27AABCC3344M1ZA",
+      "supplier_name": "Maharashtra Resin Traders",
+      "invoice_no": "INV/May-23/8144",
+      "taxable_value": 142958.04,
+      "igst_available": 25732.45,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "May-23",
+      "supplier_gstin": "07AABCD5566M1ZB",
+      "supplier_name": "Delhi Chemicals Distributors",
+      "invoice_no": "INV/May-23/9821",
+      "taxable_value": 133733.54,
+      "igst_available": 24072.04,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "May-23",
+      "supplier_gstin": "08AABCE7788M1ZC",
+      "supplier_name": "Sarvottam Traders Pvt Ltd",
+      "invoice_no": "INV/May-23/6509",
+      "taxable_value": 472234.21,
+      "igst_available": 85002.16,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "May-23",
+      "supplier_gstin": "08AABCF9900M1ZD",
+      "supplier_name": "Shree Balaji Impex LLP",
+      "invoice_no": "INV/May-23/5143",
+      "taxable_value": 397348.79,
+      "igst_available": 71522.78,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Jun-23",
+      "supplier_gstin": "08AABCA9988M1ZY",
+      "supplier_name": "Rajasthan Polymers Suppliers",
+      "invoice_no": "INV/Jun-23/6344",
+      "taxable_value": 179522.31,
+      "igst_available": 32314.02,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Jun-23",
+      "supplier_gstin": "08AABCB1122M1ZZ",
+      "supplier_name": "Northern India Packaging Raw Mat",
+      "invoice_no": "INV/Jun-23/5844",
+      "taxable_value": 168565.43,
+      "igst_available": 30341.78,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Jun-23",
+      "supplier_gstin": "27AABCC3344M1ZA",
+      "supplier_name": "Maharashtra Resin Traders",
+      "invoice_no": "INV/Jun-23/4143",
+      "taxable_value": 174862.69,
+      "igst_available": 31475.28,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Jun-23",
+      "supplier_gstin": "07AABCD5566M1ZB",
+      "supplier_name": "Delhi Chemicals Distributors",
+      "invoice_no": "INV/Jun-23/7211",
+      "taxable_value": 169313.0,
+      "igst_available": 30476.34,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Jun-23",
+      "supplier_gstin": "08AABCE7788M1ZC",
+      "supplier_name": "Sarvottam Traders Pvt Ltd",
+      "invoice_no": "INV/Jun-23/6260",
+      "taxable_value": 467364.72,
+      "igst_available": 84125.65,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Jun-23",
+      "supplier_gstin": "08AABCF9900M1ZD",
+      "supplier_name": "Shree Balaji Impex LLP",
+      "invoice_no": "INV/Jun-23/6707",
+      "taxable_value": 402789.77,
+      "igst_available": 72502.16,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Jul-23",
+      "supplier_gstin": "08AABCA9988M1ZY",
+      "supplier_name": "Rajasthan Polymers Suppliers",
+      "invoice_no": "INV/Jul-23/8752",
+      "taxable_value": 146900.27,
+      "igst_available": 26442.05,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Jul-23",
+      "supplier_gstin": "08AABCB1122M1ZZ",
+      "supplier_name": "Northern India Packaging Raw Mat",
+      "invoice_no": "INV/Jul-23/3780",
+      "taxable_value": 168858.79,
+      "igst_available": 30394.58,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Jul-23",
+      "supplier_gstin": "27AABCC3344M1ZA",
+      "supplier_name": "Maharashtra Resin Traders",
+      "invoice_no": "INV/Jul-23/5649",
+      "taxable_value": 163752.42,
+      "igst_available": 29475.44,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Jul-23",
+      "supplier_gstin": "07AABCD5566M1ZB",
+      "supplier_name": "Delhi Chemicals Distributors",
+      "invoice_no": "INV/Jul-23/6491",
+      "taxable_value": 158323.73,
+      "igst_available": 28498.27,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Jul-23",
+      "supplier_gstin": "08AABCF9900M1ZD",
+      "supplier_name": "Shree Balaji Impex LLP",
+      "invoice_no": "INV/Jul-23/5635",
+      "taxable_value": 380532.92,
+      "igst_available": 68495.93,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Aug-23",
+      "supplier_gstin": "08AABCA9988M1ZY",
+      "supplier_name": "Rajasthan Polymers Suppliers",
+      "invoice_no": "INV/Aug-23/4185",
+      "taxable_value": 153731.31,
+      "igst_available": 27671.64,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Aug-23",
+      "supplier_gstin": "08AABCB1122M1ZZ",
+      "supplier_name": "Northern India Packaging Raw Mat",
+      "invoice_no": "INV/Aug-23/7291",
+      "taxable_value": 165179.1,
+      "igst_available": 29732.24,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Aug-23",
+      "supplier_gstin": "27AABCC3344M1ZA",
+      "supplier_name": "Maharashtra Resin Traders",
+      "invoice_no": "INV/Aug-23/4997",
+      "taxable_value": 156742.42,
+      "igst_available": 28213.64,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Aug-23",
+      "supplier_gstin": "07AABCD5566M1ZB",
+      "supplier_name": "Delhi Chemicals Distributors",
+      "invoice_no": "INV/Aug-23/1090",
+      "taxable_value": 143678.59,
+      "igst_available": 25862.15,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Aug-23",
+      "supplier_gstin": "08AABCE7788M1ZC",
+      "supplier_name": "Sarvottam Traders Pvt Ltd",
+      "invoice_no": "INV/Aug-23/6813",
+      "taxable_value": 461857.27,
+      "igst_available": 83134.31,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Sep-23",
+      "supplier_gstin": "08AABCA9988M1ZY",
+      "supplier_name": "Rajasthan Polymers Suppliers",
+      "invoice_no": "INV/Sep-23/8612",
+      "taxable_value": 156194.95,
+      "igst_available": 28115.09,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Sep-23",
+      "supplier_gstin": "08AABCB1122M1ZZ",
+      "supplier_name": "Northern India Packaging Raw Mat",
+      "invoice_no": "INV/Sep-23/6198",
+      "taxable_value": 164192.57,
+      "igst_available": 29554.66,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Sep-23",
+      "supplier_gstin": "27AABCC3344M1ZA",
+      "supplier_name": "Maharashtra Resin Traders",
+      "invoice_no": "INV/Sep-23/8251",
+      "taxable_value": 174892.97,
+      "igst_available": 31480.73,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Sep-23",
+      "supplier_gstin": "07AABCD5566M1ZB",
+      "supplier_name": "Delhi Chemicals Distributors",
+      "invoice_no": "INV/Sep-23/9270",
+      "taxable_value": 162111.85,
+      "igst_available": 29180.13,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Sep-23",
+      "supplier_gstin": "08AABCE7788M1ZC",
+      "supplier_name": "Sarvottam Traders Pvt Ltd",
+      "invoice_no": "INV/Sep-23/5913",
+      "taxable_value": 467891.11,
+      "igst_available": 84220.4,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Sep-23",
+      "supplier_gstin": "08AABCF9900M1ZD",
+      "supplier_name": "Shree Balaji Impex LLP",
+      "invoice_no": "INV/Sep-23/5972",
+      "taxable_value": 446675.21,
+      "igst_available": 80401.54,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Oct-23",
+      "supplier_gstin": "08AABCA9988M1ZY",
+      "supplier_name": "Rajasthan Polymers Suppliers",
+      "invoice_no": "INV/Oct-23/5681",
+      "taxable_value": 172310.35,
+      "igst_available": 31015.86,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Oct-23",
+      "supplier_gstin": "08AABCB1122M1ZZ",
+      "supplier_name": "Northern India Packaging Raw Mat",
+      "invoice_no": "INV/Oct-23/6502",
+      "taxable_value": 163692.65,
+      "igst_available": 29464.68,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Oct-23",
+      "supplier_gstin": "27AABCC3344M1ZA",
+      "supplier_name": "Maharashtra Resin Traders",
+      "invoice_no": "INV/Oct-23/9849",
+      "taxable_value": 167268.31,
+      "igst_available": 30108.3,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Oct-23",
+      "supplier_gstin": "07AABCD5566M1ZB",
+      "supplier_name": "Delhi Chemicals Distributors",
+      "invoice_no": "INV/Oct-23/3471",
+      "taxable_value": 157234.34,
+      "igst_available": 28302.18,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Oct-23",
+      "supplier_gstin": "08AABCE7788M1ZC",
+      "supplier_name": "Sarvottam Traders Pvt Ltd",
+      "invoice_no": "INV/Oct-23/6446",
+      "taxable_value": 440213.48,
+      "igst_available": 79238.43,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Oct-23",
+      "supplier_gstin": "08AABCF9900M1ZD",
+      "supplier_name": "Shree Balaji Impex LLP",
+      "invoice_no": "INV/Oct-23/5677",
+      "taxable_value": 403932.83,
+      "igst_available": 72707.91,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Nov-23",
+      "supplier_gstin": "08AABCA9988M1ZY",
+      "supplier_name": "Rajasthan Polymers Suppliers",
+      "invoice_no": "INV/Nov-23/7232",
+      "taxable_value": 181691.13,
+      "igst_available": 32704.4,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Nov-23",
+      "supplier_gstin": "08AABCB1122M1ZZ",
+      "supplier_name": "Northern India Packaging Raw Mat",
+      "invoice_no": "INV/Nov-23/6763",
+      "taxable_value": 166437.64,
+      "igst_available": 29958.78,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Nov-23",
+      "supplier_gstin": "27AABCC3344M1ZA",
+      "supplier_name": "Maharashtra Resin Traders",
+      "invoice_no": "INV/Nov-23/7389",
+      "taxable_value": 159273.18,
+      "igst_available": 28669.17,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Nov-23",
+      "supplier_gstin": "07AABCD5566M1ZB",
+      "supplier_name": "Delhi Chemicals Distributors",
+      "invoice_no": "INV/Nov-23/7865",
+      "taxable_value": 181559.22,
+      "igst_available": 32680.66,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Nov-23",
+      "supplier_gstin": "08AABCE7788M1ZC",
+      "supplier_name": "Sarvottam Traders Pvt Ltd",
+      "invoice_no": "INV/Nov-23/6638",
+      "taxable_value": 445502.43,
+      "igst_available": 80190.44,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Nov-23",
+      "supplier_gstin": "08AABCF9900M1ZD",
+      "supplier_name": "Shree Balaji Impex LLP",
+      "invoice_no": "INV/Nov-23/5449",
+      "taxable_value": 378670.03,
+      "igst_available": 68160.61,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Dec-23",
+      "supplier_gstin": "08AABCA9988M1ZY",
+      "supplier_name": "Rajasthan Polymers Suppliers",
+      "invoice_no": "INV/Dec-23/9751",
+      "taxable_value": 188042.57,
+      "igst_available": 33847.66,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Dec-23",
+      "supplier_gstin": "08AABCB1122M1ZZ",
+      "supplier_name": "Northern India Packaging Raw Mat",
+      "invoice_no": "INV/Dec-23/7455",
+      "taxable_value": 151445.42,
+      "igst_available": 27260.18,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Dec-23",
+      "supplier_gstin": "27AABCC3344M1ZA",
+      "supplier_name": "Maharashtra Resin Traders",
+      "invoice_no": "INV/Dec-23/1444",
+      "taxable_value": 174608.39,
+      "igst_available": 31429.51,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Dec-23",
+      "supplier_gstin": "07AABCD5566M1ZB",
+      "supplier_name": "Delhi Chemicals Distributors",
+      "invoice_no": "INV/Dec-23/8022",
+      "taxable_value": 153781.75,
+      "igst_available": 27680.71,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Dec-23",
+      "supplier_gstin": "08AABCF9900M1ZD",
+      "supplier_name": "Shree Balaji Impex LLP",
+      "invoice_no": "INV/Dec-23/5776",
+      "taxable_value": 356537.0,
+      "igst_available": 64176.66,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Jan-24",
+      "supplier_gstin": "08AABCA9988M1ZY",
+      "supplier_name": "Rajasthan Polymers Suppliers",
+      "invoice_no": "INV/Jan-24/8705",
+      "taxable_value": 185357.2,
+      "igst_available": 33364.3,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Jan-24",
+      "supplier_gstin": "08AABCB1122M1ZZ",
+      "supplier_name": "Northern India Packaging Raw Mat",
+      "invoice_no": "INV/Jan-24/9837",
+      "taxable_value": 151776.99,
+      "igst_available": 27319.86,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Jan-24",
+      "supplier_gstin": "27AABCC3344M1ZA",
+      "supplier_name": "Maharashtra Resin Traders",
+      "invoice_no": "INV/Jan-24/6733",
+      "taxable_value": 153123.54,
+      "igst_available": 27562.24,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Jan-24",
+      "supplier_gstin": "07AABCD5566M1ZB",
+      "supplier_name": "Delhi Chemicals Distributors",
+      "invoice_no": "INV/Jan-24/2124",
+      "taxable_value": 160211.44,
+      "igst_available": 28838.06,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Jan-24",
+      "supplier_gstin": "08AABCE7788M1ZC",
+      "supplier_name": "Sarvottam Traders Pvt Ltd",
+      "invoice_no": "INV/Jan-24/6544",
+      "taxable_value": 434728.11,
+      "igst_available": 78251.06,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Feb-24",
+      "supplier_gstin": "08AABCA9988M1ZY",
+      "supplier_name": "Rajasthan Polymers Suppliers",
+      "invoice_no": "INV/Feb-24/5198",
+      "taxable_value": 182328.1,
+      "igst_available": 32819.06,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Feb-24",
+      "supplier_gstin": "08AABCB1122M1ZZ",
+      "supplier_name": "Northern India Packaging Raw Mat",
+      "invoice_no": "INV/Feb-24/3749",
+      "taxable_value": 195649.08,
+      "igst_available": 35216.83,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Feb-24",
+      "supplier_gstin": "27AABCC3344M1ZA",
+      "supplier_name": "Maharashtra Resin Traders",
+      "invoice_no": "INV/Feb-24/2876",
+      "taxable_value": 188544.06,
+      "igst_available": 33937.93,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Feb-24",
+      "supplier_gstin": "07AABCD5566M1ZB",
+      "supplier_name": "Delhi Chemicals Distributors",
+      "invoice_no": "INV/Feb-24/3683",
+      "taxable_value": 196129.81,
+      "igst_available": 35303.37,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Feb-24",
+      "supplier_gstin": "08AABCE7788M1ZC",
+      "supplier_name": "Sarvottam Traders Pvt Ltd",
+      "invoice_no": "INV/Feb-24/5052",
+      "taxable_value": 364052.84,
+      "igst_available": 65529.51,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Feb-24",
+      "supplier_gstin": "08AABCF9900M1ZD",
+      "supplier_name": "Shree Balaji Impex LLP",
+      "invoice_no": "INV/Feb-24/6859",
+      "taxable_value": 424853.57,
+      "igst_available": 76473.64,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Mar-24",
+      "supplier_gstin": "08AABCA9988M1ZY",
+      "supplier_name": "Rajasthan Polymers Suppliers",
+      "invoice_no": "INV/Mar-24/2983",
+      "taxable_value": 184399.11,
+      "igst_available": 33191.84,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Mar-24",
+      "supplier_gstin": "08AABCB1122M1ZZ",
+      "supplier_name": "Northern India Packaging Raw Mat",
+      "invoice_no": "INV/Mar-24/1672",
+      "taxable_value": 185385.52,
+      "igst_available": 33369.39,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Mar-24",
+      "supplier_gstin": "27AABCC3344M1ZA",
+      "supplier_name": "Maharashtra Resin Traders",
+      "invoice_no": "INV/Mar-24/8018",
+      "taxable_value": 166733.4,
+      "igst_available": 30012.01,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Mar-24",
+      "supplier_gstin": "07AABCD5566M1ZB",
+      "supplier_name": "Delhi Chemicals Distributors",
+      "invoice_no": "INV/Mar-24/2129",
+      "taxable_value": 179789.93,
+      "igst_available": 32362.19,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Mar-24",
+      "supplier_gstin": "08AABCE7788M1ZC",
+      "supplier_name": "Sarvottam Traders Pvt Ltd",
+      "invoice_no": "INV/Mar-24/6739",
+      "taxable_value": 394360.05,
+      "igst_available": 70984.81,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    },
+    {
+      "month": "Mar-24",
+      "supplier_gstin": "08AABCF9900M1ZD",
+      "supplier_name": "Shree Balaji Impex LLP",
+      "invoice_no": "INV/Mar-24/5887",
+      "taxable_value": 413726.22,
+      "igst_available": 74470.72,
+      "cgst_available": 0,
+      "sgst_available": 0,
+      "filing_status": "FILED"
+    }
+  ],
+  "total_itc_available": 2944009.85,
+  "total_invoices": 68,
+  "vendor_summary": {
+    "08AABCA9988M1ZY": {
+      "name": "Rajasthan Polymers Suppliers",
+      "is_real": true
+    },
+    "08AABCB1122M1ZZ": {
+      "name": "Northern India Packaging Raw Mat",
+      "is_real": true
+    },
+    "27AABCC3344M1ZA": {
+      "name": "Maharashtra Resin Traders",
+      "is_real": true
+    },
+    "07AABCD5566M1ZB": {
+      "name": "Delhi Chemicals Distributors",
+      "is_real": true
+    },
+    "08AABCE7788M1ZC": {
+      "name": "Sarvottam Traders Pvt Ltd",
+      "is_real": true
+    },
+    "08AABCF9900M1ZD": {
+      "name": "Shree Balaji Impex LLP",
+      "is_real": true
+    },
+    "08XXFIC0001M1ZX": {
+      "name": "Bright Star Trading Co",
+      "is_real": false
+    },
+    "08XXFIC0002M1ZX": {
+      "name": "Sunrise Supplies LLP",
+      "is_real": false
+    }
+  },
+  "metadata": {
+    "note": "Fictitious vendors 08XXFIC0001M1ZX and 08XXFIC0002M1ZX do NOT appear in GSTR-2A (auto-populated) because they have not filed their GSTR-1"
+  }
+}

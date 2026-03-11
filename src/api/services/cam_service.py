@@ -21,18 +21,18 @@ def generate_cam(
     output_path: Path | None = None,
 ) -> Path:
     """
-    Generate a CAM Word document and return the output path.
+    Generate a CAM PDF document (via LaTeX) and return the output path.
     """
-    from src.cam.cam_generator import CAMGenerator
+    from src.cam.cam_latex_generator import CAMLatexGenerator
 
     if output_path is None:
         safe_name = (company_data.get("name") or "company").replace(" ", "_")[:30]
         uid = uuid.uuid4().hex[:8]
-        output_path = settings.outputs_dir / f"CAM_{safe_name}_{uid}.docx"
+        output_path = settings.outputs_dir / f"CAM_{safe_name}_{uid}.pdf"
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    gen = CAMGenerator()
+    gen = CAMLatexGenerator()
     result_path = gen.generate_cam(
         company_data=company_data,
         scoring_result=scoring_result,

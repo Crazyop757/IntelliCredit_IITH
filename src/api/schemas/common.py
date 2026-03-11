@@ -56,6 +56,8 @@ class JobStatusResponse(BaseModel):
     result: Optional[Any] = None
     error: Optional[str] = None
     meta: Optional[dict[str, Any]] = None
+    progress_pct: Optional[int] = 0
+    current_stage: Optional[str] = ""
 
 
 # ── Risk band / decision constants ────────────────────────────────────────────

@@ -1,3 +1,7 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Intelli-Credit .gitignore
+# ═══════════════════════════════════════════════════════════════════════════
+
 # ─── Python ────────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
@@ -26,6 +30,7 @@ data/raw/*
 data/bronze/*
 data/silver/*
 data/gold/*
+data/iith_testing/*
 !data/raw/.gitkeep
 !data/bronze/.gitkeep
 !data/silver/.gitkeep
@@ -42,8 +47,7 @@ data/gold/*
 # Pipeline output files (JSONL can be large)
 *.jsonl
 
-# JSON data files everywhere EXCEPT raw seed/config files checked in intentionally
-# (override with git add -f <file> if you want to commit a specific JSON)
+# JSON data files inside data/ (override with git add -f <file>)
 data/**/*.json
 
 # ─── Outputs (generated CAM docs, reports, etc.) ────────────────────────────
@@ -54,39 +58,57 @@ outputs/*
 .env
 .env.local
 .env.*.local
-# Keep the template
+.env.production
+.env.staging
+# Keep the templates
 !.env.example
+frontend/.env
+!frontend/.env.example
 
 # ─── API runtime ─────────────────────────────────────────────────────────────
-# uvicorn / gunicorn PID files
 *.pid
-# API key files
 api_key.txt
 secrets/
 
 # ─── ML models & artifacts ──────────────────────────────────────────────────
-# These can be hundreds of MB — store in DVC / object storage instead
-models/
+# Binary model weights — too large for git; use DVC / Git LFS / object storage
+models/*.pt
+models/*.pth
+models/*.pkl
+models/*.pickle
+models/*.joblib
+# Keep the Python source file
+!models/pipeline_models.py
+
+# HuggingFace model cache (hundreds of MB per model)
 configs/model_cache/
+
+# Generic ML binary formats
 *.safetensors
 *.bin
-*.pt
-*.pth
 *.ot
 *.onnx
-*.pkl
-*.pickle
-*.joblib
 *.npy
 *.npz
 *.h5
 *.hdf5
+
+# ─── Frontend ────────────────────────────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# ─── Docker ──────────────────────────────────────────────────────────────────
+docker-compose.override.yml
+docker-compose.override.yaml
 
 # ─── IDEs ────────────────────────────────────────────────────────────────────
 .vscode/
 .idea/
 *.swp
 *.swo
+
+# ─── OS files ────────────────────────────────────────────────────────────────
 *.DS_Store
 Thumbs.db
 desktop.ini
@@ -118,5 +140,3 @@ databricks.yml
 # ─── Config secrets ──────────────────────────────────────────────────────────
 configs/secrets.*
 configs/*.secret.*
-*.DS_Store
-desktop.ini

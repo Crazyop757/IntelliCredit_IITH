@@ -1,0 +1,338 @@
+{
+  "gstin": "08AABCA4321M1ZX",
+  "legal_name": "Aravali Polymers & Packaging Pvt. Ltd.",
+  "financial_year": "2023-24",
+  "return_type": "GSTR-3B",
+  "monthly_filings": [
+    {
+      "month": "Apr-23",
+      "gstin": "08AABCA4321M1ZX",
+      "filing_date": "20/Apr/23",
+      "outward_supplies": {
+        "taxable_value": 912603.97,
+        "igst": 164268.71,
+        "cgst": 0,
+        "sgst": 0
+      },
+      "itc_claimed": {
+        "igst": 293545.74,
+        "cgst": 0,
+        "sgst": 0,
+        "total": 293545.74
+      },
+      "itc_from_2a": 268030.3,
+      "itc_gap": 25515.44,
+      "itc_gap_pct": 8.69,
+      "net_tax_paid": 0,
+      "fictitious_vendor_itc": 25515.44,
+      "fictitious_vendors_claimed": [
+        "08XXFIC0001M1ZX",
+        "08XXFIC0002M1ZX"
+      ]
+    },
+    {
+      "month": "May-23",
+      "gstin": "08AABCA4321M1ZX",
+      "filing_date": "20/May/23",
+      "outward_supplies": {
+        "taxable_value": 867973.82,
+        "igst": 156235.29,
+        "cgst": 0,
+        "sgst": 0
+      },
+      "itc_claimed": {
+        "igst": 280443.69,
+        "cgst": 0,
+        "sgst": 0,
+        "total": 280443.69
+      },
+      "itc_from_2a": 257268.56,
+      "itc_gap": 23175.13,
+      "itc_gap_pct": 8.26,
+      "net_tax_paid": 0,
+      "fictitious_vendor_itc": 23175.13,
+      "fictitious_vendors_claimed": [
+        "08XXFIC0001M1ZX",
+        "08XXFIC0002M1ZX"
+      ]
+    },
+    {
+      "month": "Jun-23",
+      "gstin": "08AABCA4321M1ZX",
+      "filing_date": "20/Jun/23",
+      "outward_supplies": {
+        "taxable_value": 1005174.09,
+        "igst": 180931.34,
+        "cgst": 0,
+        "sgst": 0
+      },
+      "itc_claimed": {
+        "igst": 302985.88,
+        "cgst": 0,
+        "sgst": 0,
+        "total": 302985.88
+      },
+      "itc_from_2a": 281235.23,
+      "itc_gap": 21750.65,
+      "itc_gap_pct": 7.18,
+      "net_tax_paid": 0,
+      "fictitious_vendor_itc": 21750.65,
+      "fictitious_vendors_claimed": [
+        "08XXFIC0001M1ZX",
+        "08XXFIC0002M1ZX"
+      ]
+    },
+    {
+      "month": "Jul-23",
+      "gstin": "08AABCA4321M1ZX",
+      "filing_date": "20/Jul/23",
+      "outward_supplies": {
+        "taxable_value": 905243.44,
+        "igst": 162943.82,
+        "cgst": 0,
+        "sgst": 0
+      },
+      "itc_claimed": {
+        "igst": 204173.52,
+        "cgst": 0,
+        "sgst": 0,
+        "total": 204173.52
+      },
+      "itc_from_2a": 183306.27,
+      "itc_gap": 20867.25,
+      "itc_gap_pct": 10.22,
+      "net_tax_paid": 0,
+      "fictitious_vendor_itc": 20867.25,
+      "fictitious_vendors_claimed": [
+        "08XXFIC0001M1ZX",
+        "08XXFIC0002M1ZX"
+      ]
+    },
+    {
+      "month": "Aug-23",
+      "gstin": "08AABCA4321M1ZX",
+      "filing_date": "20/Aug/23",
+      "outward_supplies": {
+        "taxable_value": 852053.57,
+        "igst": 153369.64,
+        "cgst": 0,
+        "sgst": 0
+      },
+      "itc_claimed": {
+        "igst": 216258.61,
+        "cgst": 0,
+        "sgst": 0,
+        "total": 216258.61
+      },
+      "itc_from_2a": 194613.98,
+      "itc_gap": 21644.63,
+      "itc_gap_pct": 10.01,
+      "net_tax_paid": 0,
+      "fictitious_vendor_itc": 21644.63,
+      "fictitious_vendors_claimed": [
+        "08XXFIC0001M1ZX",
+        "08XXFIC0002M1ZX"
+      ]
+    },
+    {
+      "month": "Sep-23",
+      "gstin": "08AABCA4321M1ZX",
+      "filing_date": "20/Sep/23",
+      "outward_supplies": {
+        "taxable_value": 908660.5,
+        "igst": 163558.89,
+        "cgst": 0,
+        "sgst": 0
+      },
+      "itc_claimed": {
+        "igst": 304830.08,
+        "cgst": 0,
+        "sgst": 0,
+        "total": 304830.08
+      },
+      "itc_from_2a": 282952.55,
+      "itc_gap": 21877.53,
+      "itc_gap_pct": 7.18,
+      "net_tax_paid": 0,
+      "fictitious_vendor_itc": 21877.53,
+      "fictitious_vendors_claimed": [
+        "08XXFIC0001M1ZX",
+        "08XXFIC0002M1ZX"
+      ]
+    },
+    {
+      "month": "Oct-23",
+      "gstin": "08AABCA4321M1ZX",
+      "filing_date": "20/Oct/23",
+      "outward_supplies": {
+        "taxable_value": 1006162.14,
+        "igst": 181109.19,
+        "cgst": 0,
+        "sgst": 0
+      },
+      "itc_claimed": {
+        "igst": 295522.62,
+        "cgst": 0,
+        "sgst": 0,
+        "total": 295522.62
+      },
+      "itc_from_2a": 270837.36,
+      "itc_gap": 24685.26,
+      "itc_gap_pct": 8.35,
+      "net_tax_paid": 0,
+      "fictitious_vendor_itc": 24685.26,
+      "fictitious_vendors_claimed": [
+        "08XXFIC0001M1ZX",
+        "08XXFIC0002M1ZX"
+      ]
+    },
+    {
+      "month": "Nov-23",
+      "gstin": "08AABCA4321M1ZX",
+      "filing_date": "20/Nov/23",
+      "outward_supplies": {
+        "taxable_value": 974225.61,
+        "igst": 175360.61,
+        "cgst": 0,
+        "sgst": 0
+      },
+      "itc_claimed": {
+        "igst": 294730.72,
+        "cgst": 0,
+        "sgst": 0,
+        "total": 294730.72
+      },
+      "itc_from_2a": 272364.06,
+      "itc_gap": 22366.66,
+      "itc_gap_pct": 7.59,
+      "net_tax_paid": 0,
+      "fictitious_vendor_itc": 22366.66,
+      "fictitious_vendors_claimed": [
+        "08XXFIC0001M1ZX",
+        "08XXFIC0002M1ZX"
+      ]
+    },
+    {
+      "month": "Dec-23",
+      "gstin": "08AABCA4321M1ZX",
+      "filing_date": "20/Dec/23",
+      "outward_supplies": {
+        "taxable_value": 1030152.99,
+        "igst": 185427.54,
+        "cgst": 0,
+        "sgst": 0
+      },
+      "itc_claimed": {
+        "igst": 207486.54,
+        "cgst": 0,
+        "sgst": 0,
+        "total": 207486.54
+      },
+      "itc_from_2a": 184394.72,
+      "itc_gap": 23091.82,
+      "itc_gap_pct": 11.13,
+      "net_tax_paid": 0,
+      "fictitious_vendor_itc": 23091.82,
+      "fictitious_vendors_claimed": [
+        "08XXFIC0001M1ZX",
+        "08XXFIC0002M1ZX"
+      ]
+    },
+    {
+      "month": "Jan-24",
+      "gstin": "08AABCA4321M1ZX",
+      "filing_date": "20/Jan/24",
+      "outward_supplies": {
+        "taxable_value": 1002038.81,
+        "igst": 180366.99,
+        "cgst": 0,
+        "sgst": 0
+      },
+      "itc_claimed": {
+        "igst": 218140.87,
+        "cgst": 0,
+        "sgst": 0,
+        "total": 218140.87
+      },
+      "itc_from_2a": 195335.52,
+      "itc_gap": 22805.35,
+      "itc_gap_pct": 10.45,
+      "net_tax_paid": 0,
+      "fictitious_vendor_itc": 22805.35,
+      "fictitious_vendors_claimed": [
+        "08XXFIC0001M1ZX",
+        "08XXFIC0002M1ZX"
+      ]
+    },
+    {
+      "month": "Feb-24",
+      "gstin": "08AABCA4321M1ZX",
+      "filing_date": "20/Feb/24",
+      "outward_supplies": {
+        "taxable_value": 1044109.79,
+        "igst": 187939.76,
+        "cgst": 0,
+        "sgst": 0
+      },
+      "itc_claimed": {
+        "igst": 307381.15,
+        "cgst": 0,
+        "sgst": 0,
+        "total": 307381.15
+      },
+      "itc_from_2a": 279280.34,
+      "itc_gap": 28100.81,
+      "itc_gap_pct": 9.14,
+      "net_tax_paid": 0,
+      "fictitious_vendor_itc": 28100.81,
+      "fictitious_vendors_claimed": [
+        "08XXFIC0001M1ZX",
+        "08XXFIC0002M1ZX"
+      ]
+    },
+    {
+      "month": "Mar-24",
+      "gstin": "08AABCA4321M1ZX",
+      "filing_date": "20/Mar/24",
+      "outward_supplies": {
+        "taxable_value": 971867.63,
+        "igst": 174936.17,
+        "cgst": 0,
+        "sgst": 0
+      },
+      "itc_claimed": {
+        "igst": 300855.32,
+        "cgst": 0,
+        "sgst": 0,
+        "total": 300855.32
+      },
+      "itc_from_2a": 274390.96,
+      "itc_gap": 26464.36,
+      "itc_gap_pct": 8.8,
+      "net_tax_paid": 0,
+      "fictitious_vendor_itc": 26464.36,
+      "fictitious_vendors_claimed": [
+        "08XXFIC0001M1ZX",
+        "08XXFIC0002M1ZX"
+      ]
+    }
+  ],
+  "annual_summary": {
+    "total_outward_taxable": 11480266.36,
+    "total_igst_liability": 2066447.95,
+    "total_itc_claimed": 3226354.74,
+    "total_itc_from_2a": 2944009.85,
+    "total_itc_gap": 282344.89,
+    "avg_itc_gap_pct": 8.92,
+    "fictitious_itc_claimed": 282344.89
+  },
+  "risk_flags": {
+    "itc_overclaim_detected": true,
+    "fictitious_vendors_detected": true,
+    "circular_trading_suspects": [
+      "08AABCE7788M1ZC",
+      "08AABCF9900M1ZD"
+    ],
+    "avg_monthly_gap_pct": 8.92
+  }
+}

@@ -1,0 +1,54 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# .dockerignore — keep Docker build context small and fast
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Git
+.git
+.gitignore
+
+# Python virtual envs
+env/
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+
+# Frontend deps & build (frontend has its own Dockerfile stage)
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Data (mounted as volume, not baked into image)
+data/bronze/
+data/silver/
+data/gold/
+data/raw/*.csv
+data/raw/*.xlsx
+
+# Outputs (mounted as volume)
+outputs/
+
+# IDE / OS
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+desktop.ini
+
+# Tests & notebooks (not needed at runtime)
+tests/
+notebooks/
+*.ipynb
+
+# Docs
+*.md
+!README.md
+
+# Environment files (passed via env_file, not baked in)
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/

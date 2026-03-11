@@ -19,6 +19,7 @@ from src.api.schemas.gst import (
     GSTReconcileRequest,
     GSTReconcileResponse,
     GraphBuildResponse,
+    GraphVisualizationResponse,
 )
 
 router = APIRouter(prefix="/gst", tags=["gst"])
@@ -192,3 +193,26 @@ async def build_graph(
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, str(exc))
 
     return GraphBuildResponse(**result)
+
+
+@router.get(
+    "/graph/visualization",
+    response_model=GraphVisualizationResponse,
+    summary="Export complete graph data for frontend network visualization",
+)
+async def get_graph_visualization(
+    _auth: AuthDep,
+) -> GraphVisualizationResponse:
+    """
+    Returns nodes, edges, circular patterns, and suspicious clusters
+    in a format optimized for interactive graph visualization libraries
+    like react-force-graph or cytoscape.
+    """
+    from src.api.services.gst_service import export_graph_for_visualization
+
+    try:
+        result = await run_in_thread(export_graph_for_visualization, None)
+    except Exception as exc:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, str(exc))
+
+    return GraphVisualizationResponse(**result)

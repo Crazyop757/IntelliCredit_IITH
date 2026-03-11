@@ -128,3 +128,45 @@ class GraphBuildResponse(BaseModel):
     suspicious_cluster_count: int
     node_risk_scores: Optional[Dict[str, float]] = None
     visualization_path: Optional[str] = None
+
+
+class GraphNode(BaseModel):
+    """Single GSTIN node in the transaction graph."""
+    id: str = Field(..., description="GSTIN identifier")
+    name: Optional[str] = None
+    total_sales: float = 0.0
+    total_purchases: float = 0.0
+    net_gst_paid: float = 0.0
+    risk_score: float = 0.0
+    is_circular: bool = False
+    is_suspicious: bool = False
+    sector: Optional[str] = None
+    state: Optional[str] = None
+
+
+class GraphEdge(BaseModel):
+    """Directed edge representing invoice transaction(s)."""
+    source: str = Field(..., description="Supplier GSTIN")
+    target: str = Field(..., description="Buyer GSTIN")
+    invoice_value: float = 0.0
+    tax_amount: float = 0.0
+    transaction_count: int = 1
+    is_circular: bool = False
+
+
+class CircularPattern(BaseModel):
+    """Detected circular trading loop."""
+    cycle: List[str] = Field(..., description="List of GSTINs forming the loop")
+    cycle_length: int
+    cycle_value: float
+    flag: str = Field(..., description="CIRCULAR_TRADING or POTENTIAL_CYCLE")
+    edges: List[Dict[str, Any]] = []
+
+
+class GraphVisualizationResponse(BaseModel):
+    """Complete graph data for frontend visualization."""
+    nodes: List[GraphNode] = []
+    edges: List[GraphEdge] = []
+    circular_patterns: List[CircularPattern] = []
+    suspicious_clusters: List[Dict[str, Any]] = []
+    stats: Dict[str, Any] = {}

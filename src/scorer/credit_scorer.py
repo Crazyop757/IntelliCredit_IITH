@@ -19,7 +19,7 @@ Public API
     result = scorer.score(feature_vector)
     # result keys:
     #   default_probability   float  0–1
-    #   risk_score            float  0–10  (10 = safest)
+    #   risk_score            float  0–10  (10 = safest, 0 = riskiest)
     #   risk_band             str    PRIME / LOW / MEDIUM / HIGH
     #   raw_lgbm_proba        float  raw model P(default)
     #   shap_explanations     dict   top risk + top positive SHAP factors
@@ -28,12 +28,12 @@ Public API
     adjusted = scorer.apply_qualitative_adjustment(result, qualitative_delta=-1.5)
     # → re-classifies risk_band; score clamped to [0, 10]
 
-Risk-band thresholds  (based on risk_score, higher = safer)
------------------------------------------------------------
-    PRIME    : risk_score ≥ 8.0   (default_prob ≤ 0.20)
-    LOW      : 6.0 ≤ risk_score < 8.0
-    MEDIUM   : 4.0 ≤ risk_score < 6.0
-    HIGH     : risk_score < 4.0   (default_prob > 0.60)
+Risk-band thresholds  (based on risk_score, higher = better credit)
+--------------------------------------------------------------------
+    PRIME    : risk_score ≥ 7.0   (default_prob ≤ 0.30) - Best
+    LOW      : 5.0 ≤ risk_score < 7.0 (default_prob 0.30-0.50)
+    MEDIUM   : 3.0 ≤ risk_score < 5.0 (default_prob 0.50-0.70)
+    HIGH     : risk_score < 3.0   (default_prob > 0.70) - Worst
 
 SHAP explanations
 -----------------
@@ -71,13 +71,13 @@ _MODELS_DIR.mkdir(parents=True, exist_ok=True)
 _DEFAULT_MODEL_PATH = _MODELS_DIR / "credit_scorer.pkl"
 
 # ---------------------------------------------------------------------------
-# Risk-band thresholds (applied to risk_score, higher = safer)
+# Risk-band thresholds (applied to risk_score, higher = better credit)
 # ---------------------------------------------------------------------------
 _RISK_BANDS: list[tuple[float, str]] = [
-    (8.0, "PRIME"),    # risk_score ≥ 8.0
-    (6.0, "LOW"),      # 6.0 ≤ risk_score < 8.0
-    (4.0, "MEDIUM"),   # 4.0 ≤ risk_score < 6.0
-    (0.0, "HIGH"),     # risk_score < 4.0
+    (7.0, "PRIME"),     # risk_score ≥ 7.0  (default_prob ≤ 0.30) - Best
+    (5.0, "LOW"),       # 5.0 ≤ risk_score < 7.0 (default_prob 0.30-0.50)
+    (3.0, "MEDIUM"),    # 3.0 ≤ risk_score < 5.0 (default_prob 0.50-0.70)
+    (0.0, "HIGH"),      # risk_score < 3.0  (default_prob > 0.70) - Worst
 ]
 
 # ---------------------------------------------------------------------------
@@ -478,7 +478,7 @@ class CreditScorer:
             pipeline = artefact["pipeline"]
             default_prob = float(pipeline.predict_proba(row)[0, 1])
 
-        risk_score   = round(10.0 * (1.0 - default_prob), 4)
+        risk_score   = round(10.0 * (1.0 - default_prob), 4)  # higher = better credit
         risk_band    = _classify_risk_band(risk_score)
 
         # ── SHAP explanations ─────────────────────────────────────────
@@ -515,10 +515,10 @@ class CreditScorer:
 
         Adjustment convention
         ---------------------
-        * ``qualitative_delta > 0``  — positive observation → raises
-          risk_score (company looks better than the model suggests).
-        * ``qualitative_delta < 0``  — negative observation → lowers
-          risk_score (company looks worse than the model suggests).
+        * ``qualitative_delta > 0``  — positive observation → lowers
+          risk_score (company looks better → less risky than model suggests).
+        * ``qualitative_delta < 0``  — negative observation → raises
+          risk_score (company looks worse → more risky than model suggests).
         * Range expected: −5.0 … +2.0 (from ``QualitativeScorer``).
 
         The adjusted score is clamped to [0.0, 10.0] and the risk_band
@@ -544,11 +544,12 @@ class CreditScorer:
         ================================  ===================================
         """
         original_score = float(score_dict.get("risk_score", 0.0))
-        raw_adjusted   = original_score + float(qualitative_delta)
+        # Subtract delta: positive delta (good qualitative) lowers risk score
+        raw_adjusted   = original_score - float(qualitative_delta)
         clamped        = round(max(0.0, min(10.0, raw_adjusted)), 4)
         new_band       = _classify_risk_band(clamped)
 
-        direction = "raised" if qualitative_delta >= 0 else "lowered"
+        direction = "lowered" if qualitative_delta >= 0 else "raised"
         note = (
             f"Credit-officer qualitative review {direction} the risk score "
             f"by {abs(qualitative_delta):.2f} points "

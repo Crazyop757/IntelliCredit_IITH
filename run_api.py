@@ -11,13 +11,17 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 
 
 def main() -> None:
+    # Render.com (and other PaaS) set PORT env var; respect it as fallback
+    default_port = int(os.environ.get("PORT", "8000"))
+
     parser = argparse.ArgumentParser(description="Run the Intelli-Credit API server")
     parser.add_argument("--host", default="0.0.0.0", help="Bind host (default: 0.0.0.0)")
-    parser.add_argument("--port", type=int, default=8000, help="Port (default: 8000)")
+    parser.add_argument("--port", type=int, default=default_port, help="Port (default: 8000 or $PORT)")
     parser.add_argument("--reload", action="store_true", help="Enable hot-reload (dev mode)")
     parser.add_argument("--workers", type=int, default=1, help="Number of worker processes")
     parser.add_argument("--log-level", default="info", help="Log level (default: info)")
@@ -32,7 +36,7 @@ def main() -> None:
     print(f"\n{'='*60}")
     print(f"  Intelli-Credit API")
     print(f"  http://{args.host}:{args.port}")
-    print(f"  Docs → http://localhost:{args.port}/docs")
+    print(f"  Docs -> http://localhost:{args.port}/docs")
     print(f"{'='*60}\n")
 
     uvicorn.run(

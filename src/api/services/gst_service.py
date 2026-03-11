@@ -110,3 +110,92 @@ def build_graph(gst_dir: Path | None = None, visualize: bool = False) -> dict[st
         "node_risk_scores": node_risk,
         "visualization_path": viz_path,
     }
+
+
+def export_graph_for_visualization(gst_dir: Path | None = None) -> dict[str, Any]:
+    """
+    Export complete graph data suitable for frontend visualization.
+    
+    Returns nodes, edges, circular patterns, and clusters in JSON-friendly format.
+    """
+    from src.gst.graph_builder import TransactionGraphBuilder
+
+    builder = TransactionGraphBuilder(gst_dir=gst_dir)
+    graph = builder.build_graph()
+
+    # Compute risk scores
+    node_risk = {}
+    try:
+        node_risk = builder.compute_node_risk_scores(graph)
+    except Exception as exc:
+        log.warning("Node risk scoring failed: %s", exc)
+
+    # Find patterns
+    circular = builder.find_circular_patterns(graph)
+    clusters = builder.find_suspicious_clusters(graph)
+
+    # Identify which nodes/edges are part of circular patterns
+    circular_gstins = set()
+    circular_edges = set()
+    for pattern in circular:
+        if pattern.get("flag") == "CIRCULAR_TRADING":
+            for gstin in pattern.get("cycle", []):
+                circular_gstins.add(gstin)
+            cycle = pattern.get("cycle", [])
+            for i in range(len(cycle)):
+                src = cycle[i]
+                dst = cycle[(i + 1) % len(cycle)]
+                circular_edges.add((src, dst))
+
+    # Identify suspicious nodes
+    suspicious_gstins = set()
+    for cluster in clusters:
+        for gstin in cluster.get("nodes", []):
+            suspicious_gstins.add(gstin)
+
+    # Export nodes
+    nodes = []
+    for gstin in graph.nodes():
+        node_data = graph.nodes[gstin]
+        nodes.append({
+            "id": gstin,
+            "name": node_data.get("name", gstin[:15]),
+            "total_sales": node_data.get("total_sales", 0.0),
+            "total_purchases": node_data.get("total_purchases", 0.0),
+            "net_gst_paid": node_data.get("net_gst_paid", 0.0),
+            "risk_score": node_risk.get(gstin, 0.0),
+            "is_circular": gstin in circular_gstins,
+            "is_suspicious": gstin in suspicious_gstins,
+            "sector": node_data.get("sector"),
+            "state": node_data.get("state"),
+        })
+
+    # Export edges
+    edges = []
+    for src, dst, edge_data in graph.edges(data=True):
+        edges.append({
+            "source": src,
+            "target": dst,
+            "invoice_value": edge_data.get("invoice_value", 0.0),
+            "tax_amount": edge_data.get("tax_amount", 0.0),
+            "transaction_count": edge_data.get("transaction_count", 1),
+            "is_circular": (src, dst) in circular_edges,
+        })
+
+    # Stats
+    stats = {
+        "total_nodes": len(nodes),
+        "total_edges": len(edges),
+        "circular_trading_nodes": len(circular_gstins),
+        "suspicious_nodes": len(suspicious_gstins),
+        "total_transaction_value": sum(e["invoice_value"] for e in edges),
+        "avg_risk_score": sum(node_risk.values()) / len(node_risk) if node_risk else 0.0,
+    }
+
+    return {
+        "nodes": nodes,
+        "edges": edges,
+        "circular_patterns": circular,
+        "suspicious_clusters": clusters,
+        "stats": stats,
+    }

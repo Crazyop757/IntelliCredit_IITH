@@ -283,6 +283,7 @@ def _normalise_columns(df: pd.DataFrame) -> pd.DataFrame:
             already_mapped.add(canonical)
 
     # Pass 2 — substring fallback for unmapped columns
+    _substring_mapped: list[str] = []
     for raw_col in df.columns:
         if raw_col in rename_map:
             continue
@@ -293,7 +294,14 @@ def _normalise_columns(df: pd.DataFrame) -> pd.DataFrame:
             if any(sub in key for sub in substrings):
                 rename_map[raw_col] = canonical
                 already_mapped.add(canonical)
+                _substring_mapped.append(f"{raw_col!r} → {canonical}")
                 break
+
+    if _substring_mapped:
+        logger.info(
+            "Column normaliser used substring fallback for: %s",
+            ", ".join(_substring_mapped),
+        )
 
     # Count total canonical coverage: pre-existing + newly renamed
     total_canonical = len(already_mapped)

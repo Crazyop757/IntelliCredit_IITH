@@ -37,13 +37,12 @@ async def lifespan(app: FastAPI):
     log.info("🚀  Intelli-Credit API starting up…")
     settings.outputs_dir.mkdir(parents=True, exist_ok=True)
 
-    # Eagerly pre-warm the CreditScorer in background (optional — keeps first request fast)
+    # Run full startup validation (Tectonic, API keys, GNN, NER, LightGBM)
     try:
-        from src.api.dependencies import get_credit_scorer
-        import asyncio
-        asyncio.create_task(get_credit_scorer())
+        from src.api.dependencies import run_startup_validation
+        await run_startup_validation()
     except Exception as exc:
-        log.warning("Pre-warm CreditScorer failed (non-fatal): %s", exc)
+        log.warning("Startup validation had errors (non-fatal): %s", exc)
 
     yield
 
@@ -88,7 +87,10 @@ Poll `GET .../jobs/{job_id}` until `status == "DONE"`.
         lifespan=lifespan,
     )
 
-    # ── Middleware (order matters — outermost first) ───────────────────────────
+    # ── Middleware (Starlette LIFO: last add_middleware call = outermost layer) ─
+    # RequestIDMiddleware first (innermost), CORS last (outermost)
+    app.add_middleware(RequestIDMiddleware)
+    app.add_middleware(TimingMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,
@@ -96,8 +98,6 @@ Poll `GET .../jobs/{job_id}` until `status == "DONE"`.
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    app.add_middleware(TimingMiddleware)
-    app.add_middleware(RequestIDMiddleware)
 
     # ── Exception handlers ────────────────────────────────────────────────────
     @app.exception_handler(RequestValidationError)
@@ -139,6 +139,8 @@ Poll `GET .../jobs/{job_id}` until `status == "DONE"`.
 
     # Health — no prefix so k8s probes work at /health
     app.include_router(health_router)
+    # Also mount under API prefix so frontend client can reach it
+    app.include_router(health_router, prefix=API_PREFIX)
 
     app.include_router(ingest_router, prefix=API_PREFIX)
     app.include_router(gst_router, prefix=API_PREFIX)

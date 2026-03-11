@@ -31,6 +31,8 @@ class Job:
         "result",
         "error",
         "meta",
+        "progress_pct",
+        "current_stage",
     )
 
     def __init__(self, job_type: str, meta: dict[str, Any] | None = None):
@@ -42,6 +44,8 @@ class Job:
         self.result: Any = None
         self.error: str | None = None
         self.meta: dict[str, Any] = meta or {}
+        self.progress_pct: int = 0
+        self.current_stage: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -53,6 +57,8 @@ class Job:
             "result": self.result,
             "error": self.error,
             "meta": self.meta,
+            "progress_pct": self.progress_pct,
+            "current_stage": self.current_stage,
         }
 
 
@@ -93,6 +99,14 @@ class JobStore:
                 job.result = result
                 job.error = error
                 job.updated_at = datetime.now(timezone.utc)
+
+    def set_progress(self, job_id: str, pct: int, stage: str) -> None:
+        """Update progress from a background thread (no lock — GIL-safe for primitive writes)."""
+        job = self._store.get(job_id)
+        if job:
+            job.progress_pct = pct
+            job.current_stage = stage
+            job.updated_at = datetime.now(timezone.utc)
 
     def _evict_if_needed(self) -> None:
         """Remove oldest completed jobs when over capacity (lock already held)."""
