@@ -306,17 +306,12 @@ async def run_startup_validation():
     validate_delta_lake()
     validate_gnn_checkpoint()
 
-    # Pre-warm NER (loads FinBERT + BERT-NER)
-    try:
-        await get_ner_extractor()
-    except Exception as exc:
-        log.warning("NER pre-warm failed (non-fatal): %s", exc)
-
-    # Pre-warm CreditScorer
-    try:
-        await get_credit_scorer()
-    except Exception as exc:
-        log.warning("CreditScorer pre-warm failed (non-fatal): %s", exc)
+    # NOTE: NER (FinBERT + BERT-NER ~3GB) and CreditScorer are NOT pre-warmed
+    # at startup to avoid OOM on memory-constrained hosts (e.g. HF Spaces).
+    # They load lazily on first request instead.
+    _component_health["finbert"] = "lazy"
+    _component_health["bert_ner"] = "lazy"
+    _component_health["lightgbm"] = "lazy"
 
     log.info("Startup validation complete. Component health: %s", _component_health)
 
