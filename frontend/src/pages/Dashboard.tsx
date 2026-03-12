@@ -19,12 +19,6 @@ const decisionIcons = {
   REJECT: XCircle,
 }
 
-const greetingText = () => {
-  const h = new Date().getHours()
-  if (h < 12) return 'Good morning'
-  if (h < 17) return 'Good afternoon'
-  return 'Good evening'
-}
 
 interface MetricCardProps {
   label: string
@@ -136,7 +130,7 @@ export default function Dashboard() {
             <Sparkles size={16} className="text-amber-400" />
             <span className="text-text-muted text-sm font-medium">{today}</span>
           </div>
-          <h1 className="text-text-primary text-2xl font-extrabold">{greetingText()}, Credit Officer 👋</h1>
+          <h1 className="text-text-primary text-2xl font-extrabold">Greetings, Credit Officer 👋</h1>
           <p className="text-text-secondary text-sm mt-0.5">Here's your portfolio snapshot</p>
         </div>
         <Button icon={<PlusCircle size={15} />} onClick={() => navigate('/new')}>
