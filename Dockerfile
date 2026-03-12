@@ -12,7 +12,9 @@ RUN npm ci --no-audit
 
 COPY frontend/ .
 ENV VITE_API_URL=/api/v1
-ENV VITE_API_KEY=dev-key-change-in-production
+# API key — set VITE_API_KEY as an HF Space Variable to match INTELLI_API_KEY secret
+ARG VITE_API_KEY=dev-key-change-in-production
+ENV VITE_API_KEY=$VITE_API_KEY
 
 # Supabase public keys — set these as Space Variables in HF settings
 ARG VITE_SUPABASE_URL

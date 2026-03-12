@@ -158,7 +158,11 @@ Poll `GET .../jobs/{job_id}` until `status == "DONE"`.
     async def add_security_headers(request: Request, call_next):
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-Frame-Options"] = "DENY"
+        # Allow HF Spaces iframe embedding (frame-ancestors overrides X-Frame-Options
+        # in modern browsers; omitting X-Frame-Options avoids breaking HF Space pages)
+        response.headers["Content-Security-Policy"] = (
+            "frame-ancestors 'self' https://huggingface.co https://*.hf.space"
+        )
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         return response
