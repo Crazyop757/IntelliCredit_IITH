@@ -372,23 +372,38 @@ async def debug_sample_run(
 
 # ── GET /analysis/history ─────────────────────────────────────────────────────
 
+# Map frontend status labels → DB status values
+_FE_TO_DB_STATUS = {
+    "completed": "DONE",
+    "pending": "PENDING",
+    "failed": "FAILED",
+    "processing": "PENDING",
+}
+_DB_TO_FE_STATUS = {"DONE": "completed", "PENDING": "pending", "FAILED": "failed"}
+
+
 @router.get("/history", summary="List appraisal history for the authenticated user")
 async def list_history(
     current_user: Annotated[dict, Depends(get_current_user)],
     limit: int = 20,
     offset: int = 0,
-    status_filter: Optional[str] = None,
+    status: Optional[str] = None,
     company_id: Optional[str] = None,
 ) -> dict:
     from src.database.appraisal_repository import AppraisalRepository
     user_id = current_user.get("sub", "")
+    db_status = _FE_TO_DB_STATUS.get(status.lower(), status) if status else None
     rows = AppraisalRepository().list_appraisals(
         user_id=user_id,
         limit=limit,
         offset=offset,
-        status=status_filter,
+        status=db_status,
         company_id=company_id,
     )
+    # Normalise DB status values to frontend-friendly labels
+    for row in rows:
+        raw = row.get("status", "")
+        row["status"] = _DB_TO_FE_STATUS.get(raw, raw.lower() if isinstance(raw, str) else raw)
     return {"appraisals": rows, "count": len(rows), "offset": offset, "limit": limit}
 
 

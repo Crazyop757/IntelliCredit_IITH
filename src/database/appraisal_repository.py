@@ -28,6 +28,7 @@ class AppraisalRepository:
         fiscal_year: int | None = None,
     ) -> dict[str, Any] | None:
         if self._db is None:
+            log.warning("create_appraisal: Supabase admin client is None — cannot persist")
             return None
         try:
             row = {
@@ -64,6 +65,7 @@ class AppraisalRepository:
         error: str | None = None,
     ) -> None:
         if self._db is None:
+            log.warning("update_appraisal_result: Supabase admin client is None — cannot update job %s", job_id)
             return
         try:
             patch: dict[str, Any] = {"status": status}
@@ -99,6 +101,7 @@ class AppraisalRepository:
         company_id: str | None = None,
     ) -> list[dict[str, Any]]:
         if self._db is None:
+            log.warning("list_appraisals: Supabase admin client is None — returning empty list")
             return []
         try:
             q = (
@@ -132,6 +135,7 @@ class AppraisalRepository:
 
     def get_appraisal(self, *, appraisal_id: str, user_id: str) -> dict[str, Any] | None:
         if self._db is None:
+            log.warning("get_appraisal: Supabase admin client is None — returning None")
             return None
         try:
             res = (
@@ -149,6 +153,7 @@ class AppraisalRepository:
 
     def get_stats(self, *, user_id: str) -> dict[str, Any]:
         if self._db is None:
+            log.warning("get_stats: Supabase admin client is None — returning empty stats")
             return {}
         try:
             res = (
