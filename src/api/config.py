@@ -21,7 +21,10 @@ class APISettings(BaseSettings):
     )
 
     # ── Security ───────────────────────────────────────────────────────
-    api_key: str = "dev-key-change-in-production"
+    api_key: str = Field(
+        default="dev-key-change-in-production",
+        validation_alias=AliasChoices("FINSIGHT_API_KEY", "INTELLI_API_KEY"),
+    )
     api_key_header: str = "X-API-Key"
     # Set to True to skip key check (useful in trusted internal deployments)
     disable_auth: bool = False
@@ -32,8 +35,7 @@ class APISettings(BaseSettings):
         "http://localhost:3000",
         "http://localhost:8501",
         "http://localhost:8000",
-        "https://finsight-frontend.onrender.com",
-    ]
+        "https://finsight-frontend.onrender.com",        "https://techbriny07-finsight.hf.space",    ]
 
     # ── Server ─────────────────────────────────────────────────────────
     host: str = "0.0.0.0"
