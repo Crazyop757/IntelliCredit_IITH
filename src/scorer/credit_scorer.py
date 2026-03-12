@@ -350,7 +350,7 @@ class CreditScorer:
             min_samples_leaf=10,
             class_weight="balanced",
             random_state=42,
-            n_jobs=-1,
+            n_jobs=1,
         )
         ensemble = VotingClassifier(
             estimators=[("lgbm", lgbm_clf), ("rf", rf_clf)],
