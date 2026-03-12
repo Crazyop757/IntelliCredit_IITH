@@ -342,6 +342,38 @@ async def run_startup_validation():
     validate_delta_lake()
     validate_gnn_checkpoint()
 
+    # ── Dependency checks ─────────────────────────────────────────────
+    for mod_name, health_key in [
+        ("bs4", "beautifulsoup4"),
+        ("tavily", "tavily_python"),
+    ]:
+        try:
+            __import__(mod_name)
+            _component_health[health_key] = "available"
+        except ImportError:
+            _component_health[health_key] = "missing"
+            log.warning("%s not installed — some tools will use mock fallback.", health_key)
+
+    # ── Supabase connectivity ─────────────────────────────────────────
+    try:
+        from src.database.supabase_client import get_supabase_client
+        sb = get_supabase_client()
+        _component_health["supabase"] = "connected" if sb else "unavailable"
+    except Exception:
+        _component_health["supabase"] = "error"
+
+    # ── Model / training data presence ────────────────────────────────
+    model_path = Path("models/credit_scorer.pkl")
+    training_path = Path("data/silver/training_data.csv")
+    if model_path.exists():
+        _component_health["credit_model"] = "present"
+    elif training_path.exists():
+        _component_health["credit_model"] = "untrained_data_available"
+        log.info("credit_scorer.pkl missing but training data available — will auto-train on first request.")
+    else:
+        _component_health["credit_model"] = "will_auto_generate"
+        log.info("credit_scorer.pkl and training data missing — will auto-generate and train on first request.")
+
     # NOTE: NER (FinBERT + BERT-NER ~3GB) and CreditScorer are NOT pre-warmed
     # at startup to avoid OOM on memory-constrained hosts (e.g. HF Spaces).
     # They load lazily on first request instead.

@@ -575,10 +575,9 @@ class CreditScorer:
         """
         Return the cached model artefact, loading from disk if needed.
 
-        Raises
-        ------
-        FileNotFoundError
-            When the model file does not exist (train first).
+        If the model file does not exist, attempts to auto-train from
+        ``data/silver/training_data.csv``.  If that CSV is also absent,
+        generates synthetic training data first, then trains.
         """
         if self._model is not None:
             return self._model
@@ -591,14 +590,127 @@ class CreditScorer:
             ) from exc
 
         if not self.model_path.exists():
-            raise FileNotFoundError(
-                f"Model file not found: {self.model_path}\n"
-                "Run CreditScorer().train('data/silver/training_data.csv') first."
-            )
+            logger.warning("Model file not found at %s — attempting auto-train.", self.model_path)
+            training_csv = _PROJECT_ROOT / "data" / "silver" / "training_data.csv"
+            if not training_csv.exists():
+                logger.info("Training CSV not found — generating synthetic data at %s", training_csv)
+                self._generate_synthetic_training_data(training_csv)
+            self.train(training_csv)
 
         self._model = joblib.load(self.model_path)
         logger.info("Model loaded from %s", self.model_path)
         return self._model
+
+    @staticmethod
+    def _generate_synthetic_training_data(out_path: Path) -> None:
+        """Generate a 2000-sample synthetic training CSV for auto-bootstrap."""
+        rng = np.random.default_rng(42)
+        rows: list[dict[str, Any]] = []
+
+        def _sample(risk: str) -> tuple[dict[str, float], int]:
+            n = rng.normal
+            if risk == "HIGH":
+                s = {
+                    "debt_to_equity": float(np.clip(n(5.5, 1.2), 3.5, 9.0)),
+                    "current_ratio": float(np.clip(n(0.65, 0.15), 0.3, 0.95)),
+                    "dscr": float(np.clip(n(0.70, 0.15), 0.3, 0.95)),
+                    "ebitda_margin": float(np.clip(n(0.04, 0.02), 0.01, 0.09)),
+                    "revenue_growth_yoy": float(np.clip(n(-0.10, 0.08), -0.35, 0.05)),
+                    "working_capital_days": float(np.clip(n(140, 25), 90, 200)),
+                    "debtor_days": float(np.clip(n(110, 20), 70, 160)),
+                    "creditor_days": float(np.clip(n(25, 8), 10, 45)),
+                    "avg_monthly_balance_cr": float(np.clip(n(0.8, 0.4), 0.1, 2.0)),
+                    "credit_utilization_pct": float(np.clip(n(0.92, 0.05), 0.80, 0.99)),
+                    "upi_concentration_pct": float(np.clip(n(0.75, 0.10), 0.55, 0.95)),
+                    "bounce_count": int(np.clip(n(7, 2), 3, 15)),
+                    "gst_health_score": float(np.clip(n(2.5, 0.8), 1.0, 4.0)),
+                    "itc_gap_pct": float(np.clip(n(35, 8), 20, 55)),
+                    "gst_filing_regularity": float(np.clip(n(0.55, 0.12), 0.3, 0.75)),
+                    "turnover_consistency_score": float(np.clip(n(0.40, 0.10), 0.2, 0.60)),
+                    "circular_trading_confidence": float(np.clip(n(0.78, 0.12), 0.55, 0.98)),
+                    "litigation_count": int(np.clip(n(6, 2), 3, 12)),
+                    "news_risk_score": float(np.clip(n(7.5, 1.2), 5.5, 10.0)),
+                    "has_wilful_default_flag": int(rng.choice([0, 1], p=[0.25, 0.75])),
+                    "promoter_pledging_pct": float(np.clip(n(0.68, 0.12), 0.45, 0.95)),
+                    "sector_npa_rate": float(np.clip(n(0.11, 0.02), 0.07, 0.15)),
+                    "company_age_years": float(np.clip(n(6, 3), 1, 15)),
+                    "director_count": int(np.clip(n(4, 1.5), 2, 8)),
+                }
+                return s, 1
+            elif risk == "MEDIUM":
+                s = {
+                    "debt_to_equity": float(np.clip(n(2.5, 0.6), 1.5, 4.0)),
+                    "current_ratio": float(np.clip(n(1.10, 0.20), 0.80, 1.50)),
+                    "dscr": float(np.clip(n(1.15, 0.20), 0.85, 1.50)),
+                    "ebitda_margin": float(np.clip(n(0.10, 0.04), 0.04, 0.18)),
+                    "revenue_growth_yoy": float(np.clip(n(0.05, 0.08), -0.10, 0.18)),
+                    "working_capital_days": float(np.clip(n(85, 20), 50, 130)),
+                    "debtor_days": float(np.clip(n(70, 15), 45, 100)),
+                    "creditor_days": float(np.clip(n(45, 12), 25, 75)),
+                    "avg_monthly_balance_cr": float(np.clip(n(4.0, 2.0), 1.0, 10.0)),
+                    "credit_utilization_pct": float(np.clip(n(0.72, 0.10), 0.55, 0.88)),
+                    "upi_concentration_pct": float(np.clip(n(0.50, 0.12), 0.30, 0.70)),
+                    "bounce_count": int(np.clip(n(2, 1.2), 0, 5)),
+                    "gst_health_score": float(np.clip(n(5.0, 0.8), 3.5, 6.5)),
+                    "itc_gap_pct": float(np.clip(n(14, 5), 5, 25)),
+                    "gst_filing_regularity": float(np.clip(n(0.75, 0.08), 0.60, 0.88)),
+                    "turnover_consistency_score": float(np.clip(n(0.65, 0.10), 0.45, 0.80)),
+                    "circular_trading_confidence": float(np.clip(n(0.30, 0.12), 0.10, 0.55)),
+                    "litigation_count": int(np.clip(n(2, 1.2), 0, 5)),
+                    "news_risk_score": float(np.clip(n(4.5, 1.2), 2.5, 7.0)),
+                    "has_wilful_default_flag": int(rng.choice([0, 1], p=[0.88, 0.12])),
+                    "promoter_pledging_pct": float(np.clip(n(0.32, 0.12), 0.10, 0.55)),
+                    "sector_npa_rate": float(np.clip(n(0.06, 0.02), 0.03, 0.10)),
+                    "company_age_years": float(np.clip(n(18, 8), 5, 40)),
+                    "director_count": int(np.clip(n(6, 2), 3, 10)),
+                }
+                return s, int(rng.choice([0, 1], p=[0.55, 0.45]))
+            else:  # LOW
+                s = {
+                    "debt_to_equity": float(np.clip(n(0.9, 0.4), 0.1, 1.8)),
+                    "current_ratio": float(np.clip(n(2.0, 0.4), 1.4, 3.5)),
+                    "dscr": float(np.clip(n(2.2, 0.4), 1.5, 3.8)),
+                    "ebitda_margin": float(np.clip(n(0.20, 0.05), 0.12, 0.35)),
+                    "revenue_growth_yoy": float(np.clip(n(0.18, 0.07), 0.05, 0.38)),
+                    "working_capital_days": float(np.clip(n(45, 12), 20, 70)),
+                    "debtor_days": float(np.clip(n(35, 10), 15, 55)),
+                    "creditor_days": float(np.clip(n(65, 15), 40, 95)),
+                    "avg_monthly_balance_cr": float(np.clip(n(18, 8), 8, 50)),
+                    "credit_utilization_pct": float(np.clip(n(0.42, 0.10), 0.20, 0.60)),
+                    "upi_concentration_pct": float(np.clip(n(0.28, 0.08), 0.10, 0.45)),
+                    "bounce_count": int(np.clip(n(0.3, 0.5), 0, 2)),
+                    "gst_health_score": float(np.clip(n(8.0, 0.8), 6.5, 10.0)),
+                    "itc_gap_pct": float(np.clip(n(3, 2), 0, 8)),
+                    "gst_filing_regularity": float(np.clip(n(0.95, 0.04), 0.85, 1.0)),
+                    "turnover_consistency_score": float(np.clip(n(0.88, 0.06), 0.75, 1.0)),
+                    "circular_trading_confidence": float(np.clip(n(0.06, 0.04), 0.0, 0.18)),
+                    "litigation_count": int(np.clip(n(0.3, 0.5), 0, 2)),
+                    "news_risk_score": float(np.clip(n(1.8, 0.8), 0.2, 3.5)),
+                    "has_wilful_default_flag": 0,
+                    "promoter_pledging_pct": float(np.clip(n(0.08, 0.06), 0.0, 0.22)),
+                    "sector_npa_rate": float(np.clip(n(0.03, 0.01), 0.01, 0.06)),
+                    "company_age_years": float(np.clip(n(28, 10), 10, 60)),
+                    "director_count": int(np.clip(n(8, 2), 5, 15)),
+                }
+                return s, 0
+
+        for _ in range(600):
+            s, lbl = _sample("HIGH")
+            s["label"] = lbl
+            rows.append(s)
+        for _ in range(800):
+            s, lbl = _sample("MEDIUM")
+            s["label"] = lbl
+            rows.append(s)
+        for _ in range(600):
+            s, lbl = _sample("LOW")
+            s["label"] = lbl
+            rows.append(s)
+
+        df = pd.DataFrame(rows).sample(frac=1, random_state=42).reset_index(drop=True)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        df.to_csv(out_path, index=False)
+        logger.info("Synthetic training data generated: %d samples → %s", len(df), out_path)
 
     def _compute_shap(
         self,

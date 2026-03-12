@@ -171,8 +171,23 @@ class SynthesizerAgent:
                     news_report, ecourts_report, mca_report, rbi_report,
                 )
                 if result:
-                    result = self._validate(result)
-                    result["synthesis_method"] = "llm"
+                    try:
+                        result = self._validate(result)
+                        result["synthesis_method"] = "llm"
+                    except ValueError as val_err:
+                        logger.warning("LLM output validation failed: %s — patching with rule-based fallback.", val_err)
+                        # Patch missing fields from rule-based synthesis instead of discarding
+                        rb = self._rule_based_synthesis(
+                            news_report, ecourts_report, mca_report, rbi_report,
+                        )
+                        for field in REQUIRED_FIELDS:
+                            if field not in result:
+                                result[field] = rb[field]
+                        try:
+                            result = self._validate(result)
+                            result["synthesis_method"] = "llm_patched"
+                        except ValueError:
+                            result = None
             except Exception as exc:
                 logger.warning("SynthesizerAgent LLM call failed: %s", exc)
                 result = None

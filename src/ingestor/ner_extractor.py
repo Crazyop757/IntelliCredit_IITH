@@ -404,7 +404,7 @@ class NERExtractor:
             step = effective
 
         # Encode without special tokens to get raw content ids
-        ids = tokenizer.encode(text, add_special_tokens=False)
+        ids = tokenizer.encode(text, add_special_tokens=False, truncation=False)
 
         if not ids:
             return []

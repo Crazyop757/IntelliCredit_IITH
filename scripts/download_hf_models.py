@@ -22,6 +22,11 @@ print("=" * 60)
 print("  Downloading HuggingFace models → configs/model_cache/")
 print("=" * 60)
 
+# Use HF_TOKEN for authenticated downloads if available
+_hf_token = os.environ.get("HF_TOKEN") or None
+if _hf_token:
+    print("  ✓ HF_TOKEN detected — using authenticated downloads.")
+
 from transformers import (
     AutoTokenizer,
     AutoModelForTokenClassification,
@@ -29,11 +34,11 @@ from transformers import (
 )
 
 print("  → dslim/bert-base-NER …")
-AutoTokenizer.from_pretrained("dslim/bert-base-NER", cache_dir=str(CACHE_DIR))
-AutoModelForTokenClassification.from_pretrained("dslim/bert-base-NER", cache_dir=str(CACHE_DIR))
+AutoTokenizer.from_pretrained("dslim/bert-base-NER", cache_dir=str(CACHE_DIR), token=_hf_token)
+AutoModelForTokenClassification.from_pretrained("dslim/bert-base-NER", cache_dir=str(CACHE_DIR), token=_hf_token)
 
 print("  → ProsusAI/finbert …")
-AutoTokenizer.from_pretrained("ProsusAI/finbert", cache_dir=str(CACHE_DIR))
-AutoModelForSequenceClassification.from_pretrained("ProsusAI/finbert", cache_dir=str(CACHE_DIR))
+AutoTokenizer.from_pretrained("ProsusAI/finbert", cache_dir=str(CACHE_DIR), token=_hf_token)
+AutoModelForSequenceClassification.from_pretrained("ProsusAI/finbert", cache_dir=str(CACHE_DIR), token=_hf_token)
 
 print("  ✓ Done.\n")

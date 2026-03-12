@@ -47,6 +47,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY scripts/download_hf_models.py scripts/download_hf_models.py
 ENV TRANSFORMERS_CACHE=/app/configs/model_cache
 ENV HF_HOME=/app/configs/model_cache
+# HF_TOKEN enables authenticated model downloads (set as HF Space secret)
+ARG HF_TOKEN
+ENV HF_TOKEN=${HF_TOKEN}
 RUN python scripts/download_hf_models.py
 
 # ── Now copy application code (changes here won't bust the model cache)

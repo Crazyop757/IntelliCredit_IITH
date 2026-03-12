@@ -39,10 +39,19 @@ langchain-anthropic>=0.1.0
 # ── Graph / network analysis ──────────────────────────────────────────────────
 networkx>=3.3
 
+# ── Web scraping (MCA / eCourts tools) ────────────────────────────────────────
+beautifulsoup4>=4.12.0
+lxml>=5.0.0                   # fast HTML/XML parser for bs4
+
+# ── News intelligence ─────────────────────────────────────────────────────────
+tavily-python>=0.3.0
+
 # ── Utilities ─────────────────────────────────────────────────────────────────
 python-dateutil>=2.9.0
+python-dotenv>=1.0.0
 requests>=2.32.0
 httpx>=0.27.0                 # async HTTP for tools
+joblib>=1.3.0                 # model serialisation
 
 # ── Delta Lake (optional — falls back to local parquet) ───────────────────────
 # delta-spark>=3.0.0

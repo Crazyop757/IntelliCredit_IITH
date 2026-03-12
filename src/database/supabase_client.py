@@ -29,6 +29,10 @@ def get_supabase_client():
         log.warning("Supabase URL/anon key not configured — database persistence disabled.")
         _client_failed = True
         return None
+    if not settings.supabase_url.startswith("https://"):
+        log.error("Supabase URL must start with https:// — got %r. Database disabled.", settings.supabase_url)
+        _client_failed = True
+        return None
     try:
         from supabase import create_client
         _client = create_client(settings.supabase_url, settings.supabase_anon_key)
@@ -50,6 +54,10 @@ def get_supabase_admin_client():
     from src.api.config import settings
     if not settings.supabase_url or not settings.supabase_service_role_key:
         log.warning("Supabase URL/service role key not configured — admin client unavailable.")
+        _admin_client_failed = True
+        return None
+    if not settings.supabase_url.startswith("https://"):
+        log.error("Supabase URL must start with https:// — admin client disabled.")
         _admin_client_failed = True
         return None
     try:
