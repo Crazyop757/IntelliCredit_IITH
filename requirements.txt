@@ -13,8 +13,8 @@ python-jose[cryptography]>=3.3.0
 # ── ML / scoring ─────────────────────────────────────────────────────────────
 lightgbm>=4.3.0
 shap>=0.45.0
-torch>=2.2.0
-torch-geometric>=2.5.0
+# torch is installed separately in Dockerfile via --extra-index-url (CPU-only)
+# to avoid the 2.5 GB CUDA bundle that OOM-kills HF Spaces free tier.
 transformers>=4.40.0
 scikit-learn>=1.4.0
 
