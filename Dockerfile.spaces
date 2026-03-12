@@ -11,8 +11,15 @@ COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci --no-audit
 
 COPY frontend/ .
+
+# Build-time vars baked into the JS bundle
 ENV VITE_API_URL=/api/v1
 ENV VITE_API_KEY=dev-key-change-in-production
+ARG VITE_SUPABASE_URL=https://oozjxnknjjohitpxpgbw.supabase.co
+ARG VITE_SUPABASE_ANON_KEY=sb_publishable_yZo62RfqRDmuxWggxc4EtA_fXhbS9MM
+ENV VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+ENV VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+
 RUN npm run build
 
 # ── Stage 2: Python backend + serve frontend static files ────────────────
@@ -27,15 +34,26 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
+# Install CPU-only PyTorch first (saves ~1.5 GB vs full CUDA bundle)
+RUN pip install --no-cache-dir \
+    torch --index-url https://download.pytorch.org/whl/cpu
+
 COPY requirements.txt .
+# Install remaining deps (torch already satisfied, pip will skip it)
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY src/ src/
 COPY models/pipeline_models.py models/pipeline_models.py
 COPY scripts/ scripts/
+COPY tests/generate_training_data.py tests/generate_training_data.py
+RUN touch tests/__init__.py
 COPY run_api.py .
 COPY .env.example .env.example
+
+# Point HuggingFace / transformers at the in-image cache dir
+ENV TRANSFORMERS_CACHE=/app/configs/model_cache
+ENV HF_HOME=/app/configs/model_cache
 
 # Download HuggingFace models + train bootstrap ML models at build time
 # This bakes them into the image so startup is fast

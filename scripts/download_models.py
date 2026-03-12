@@ -85,8 +85,8 @@ def ensure_gnn_model():
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
     try:
-        from src.gst.gnn_detector import GNNFraudDetector
-        detector = GNNFraudDetector()
+        from src.gst.gnn_detector import CircularTradingDetector
+        detector = CircularTradingDetector()
         detector.train_model()
         print(f"      ✓ Saved → {pt_path}\n")
     except Exception as exc:

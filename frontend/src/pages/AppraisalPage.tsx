@@ -1537,17 +1537,21 @@ function ResultsSection() {
 // ─── Main page ───────────────────────────────────────────────────────────────
 
 export default function AppraisalPage() {
-  const { startSession, recordJob, reset, setOwnerUserId } = useSession()
+  const { startSession, recordJob, reset, setOwnerUserId, results, company, job_id } = useSession()
   const currentUser = useAuthStore((s) => s.user)
   const queryClient = useQueryClient()
-  // Always start fresh when navigating to /new
+
   const [phase, setPhase] = useState<'input' | 'analysis' | 'results'>('input')
   const [companyNameDisplay, setCompanyNameDisplay] = useState('')
   const [activeJobId, setActiveJobId] = useState<string | null>(null)
 
-  // Reset any persisted results from a previous session on mount
+  // Restore previous appraisal from session store on mount (if any)
   useEffect(() => {
-    reset()
+    if (results) {
+      setPhase('results')
+      setCompanyNameDisplay(company?.company_name ?? '')
+      setActiveJobId(job_id ?? null)
+    }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const resultsRef = useRef<HTMLDivElement>(null)
   const analysisRef = useRef<HTMLDivElement>(null)

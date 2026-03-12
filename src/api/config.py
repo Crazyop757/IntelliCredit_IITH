@@ -30,9 +30,11 @@ class APISettings(BaseSettings):
     # Override in production via FINSIGHT_CORS_ORIGINS env var (JSON list)
     cors_origins: List[str] = [
         "http://localhost:3000",
+        "http://localhost:3001",
         "http://localhost:8501",
         "http://localhost:8000",
         "https://finsight-frontend.onrender.com",
+        "https://huggingface.co",
     ]
 
     # ── Server ─────────────────────────────────────────────────────────
