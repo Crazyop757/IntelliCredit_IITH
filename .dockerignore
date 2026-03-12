@@ -36,7 +36,10 @@ Thumbs.db
 desktop.ini
 
 # Tests & notebooks (not needed at runtime)
-tests/
+# Keep tests/generate_training_data.py for model bootstrap
+tests/*
+!tests/generate_training_data.py
+!tests/__init__.py
 notebooks/
 *.ipynb
 

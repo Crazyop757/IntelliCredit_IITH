@@ -1,3 +1,12 @@
+---
+title: Intelli Credit
+emoji: 💰
+colorFrom: blue
+colorTo: green
+sdk: docker
+pinned: false
+---
+
 # Intelli-Credit
 
 AI-powered credit analysis platform that combines ML scoring, NLP document extraction, graph-based fraud detection, and LLM-driven research to produce comprehensive Credit Approval Memorandums (CAMs).
