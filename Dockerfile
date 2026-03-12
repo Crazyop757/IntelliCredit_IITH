@@ -41,10 +41,12 @@ WORKDIR /app
 COPY requirements.txt .
 # Install CPU-only PyTorch first (saves ~1.5 GB vs the default CUDA bundle,
 # which OOM-kills the 16 GB HF Spaces free tier).
+# torch-geometric is NOT installed — it needs C++ compilation toolchains
+# absent from python:3.11-slim; the GNN detector falls back to rule-based
+# scoring automatically when torch_geometric is missing.
 RUN pip install --no-cache-dir \
     torch==2.2.2+cpu \
     --extra-index-url https://download.pytorch.org/whl/cpu
-RUN pip install --no-cache-dir torch-geometric==2.5.3
 RUN pip install --no-cache-dir -r requirements.txt
 
 # ── Download HF models BEFORE copying src/ so this layer is cached

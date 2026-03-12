@@ -15,7 +15,7 @@ from typing import Annotated, List, Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
 
-from src.api.dependencies import AuthDep, JobStoreDep, get_current_user, get_appraisal_repository, get_company_repository, run_in_thread
+from src.api.dependencies import AuthDep, JobStoreDep, get_current_user, get_optional_user, get_appraisal_repository, get_company_repository, run_in_thread
 from src.api.job_store import JobStatus
 from src.api.schemas.common import JobRef, JobStatusResponse
 
@@ -382,16 +382,16 @@ _FE_TO_DB_STATUS = {
 _DB_TO_FE_STATUS = {"DONE": "completed", "PENDING": "pending", "FAILED": "failed"}
 
 
-@router.get("/history", summary="List appraisal history for the authenticated user")
+@router.get("/history", summary="List appraisal history")
 async def list_history(
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: Annotated[dict | None, Depends(get_optional_user)],
     limit: int = 20,
     offset: int = 0,
     status: Optional[str] = None,
     company_id: Optional[str] = None,
 ) -> dict:
     from src.database.appraisal_repository import AppraisalRepository
-    user_id = current_user.get("sub", "")
+    user_id = current_user.get("sub", "") if current_user else None
     db_status = _FE_TO_DB_STATUS.get(status.lower(), status) if status else None
     rows = AppraisalRepository().list_appraisals(
         user_id=user_id,
@@ -409,12 +409,12 @@ async def list_history(
 
 # ── GET /analysis/stats ───────────────────────────────────────────────────────
 
-@router.get("/stats", summary="Aggregate appraisal stats for the authenticated user")
+@router.get("/stats", summary="Aggregate appraisal stats")
 async def get_history_stats(
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: Annotated[dict | None, Depends(get_optional_user)],
 ) -> dict:
     from src.database.appraisal_repository import AppraisalRepository
-    user_id = current_user.get("sub", "")
+    user_id = current_user.get("sub", "") if current_user else None
     return AppraisalRepository().get_stats(user_id=user_id)
 
 
@@ -423,10 +423,10 @@ async def get_history_stats(
 @router.get("/appraisals/{appraisal_id}", summary="Get full detail for a single appraisal")
 async def get_appraisal_detail(
     appraisal_id: str,
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: Annotated[dict | None, Depends(get_optional_user)],
 ) -> dict:
     from src.database.appraisal_repository import AppraisalRepository
-    user_id = current_user.get("sub", "")
+    user_id = current_user.get("sub", "") if current_user else None
     row = AppraisalRepository().get_appraisal(appraisal_id=appraisal_id, user_id=user_id)
     if row is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Appraisal not found")

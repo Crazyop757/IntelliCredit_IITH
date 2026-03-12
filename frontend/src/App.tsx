@@ -110,16 +110,20 @@ export default function App() {
                 element={<Suspense fallback={<PageLoader />}><CompanyDetail /></Suspense>}
               />
               <Route
-                path="/history"
-                element={<Suspense fallback={<PageLoader />}><HistoryPage /></Suspense>}
-              />
-              <Route
                 path="/profile"
                 element={<Suspense fallback={<PageLoader />}><ProfilePage /></Suspense>}
               />
               <Route
                 path="/results"
                 element={<Suspense fallback={<PageLoader />}><Results /></Suspense>}
+              />
+            </Route>
+
+            {/* History is accessible without strict auth — backend accepts optional JWT */}
+            <Route element={<AppLayout />}>
+              <Route
+                path="/history"
+                element={<Suspense fallback={<PageLoader />}><HistoryPage /></Suspense>}
               />
             </Route>
 

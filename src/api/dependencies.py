@@ -148,6 +148,18 @@ async def get_current_user(
     return _decode_supabase_jwt(credentials.credentials)
 
 
+async def get_optional_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
+) -> dict | None:
+    """Like get_current_user but returns None instead of 401 when no/bad token."""
+    if credentials is None:
+        return None
+    try:
+        return _decode_supabase_jwt(credentials.credentials)
+    except HTTPException:
+        return None
+
+
 # ── Repository DI ─────────────────────────────────────────────────────────────
 
 def get_appraisal_repository():

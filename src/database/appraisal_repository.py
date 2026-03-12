@@ -94,7 +94,7 @@ class AppraisalRepository:
     def list_appraisals(
         self,
         *,
-        user_id: str,
+        user_id: str | None,
         limit: int = 20,
         offset: int = 0,
         status: str | None = None,
@@ -112,10 +112,11 @@ class AppraisalRepository:
                     "loan_amount_requested, fiscal_year, cam_storage_path, "
                     "created_at, updated_at, result_json"
                 )
-                .eq("user_id", user_id)
                 .order("created_at", desc=True)
                 .range(offset, offset + limit - 1)
             )
+            if user_id:
+                q = q.eq("user_id", user_id)
             if status:
                 q = q.eq("status", status)
             if company_id:
@@ -133,35 +134,36 @@ class AppraisalRepository:
             log.error("AppraisalRepository.list_appraisals failed: %s", exc)
             return []
 
-    def get_appraisal(self, *, appraisal_id: str, user_id: str) -> dict[str, Any] | None:
+    def get_appraisal(self, *, appraisal_id: str, user_id: str | None) -> dict[str, Any] | None:
         if self._db is None:
             log.warning("get_appraisal: Supabase admin client is None — returning None")
             return None
         try:
-            res = (
+            q = (
                 self._db.table("appraisals")
                 .select("*")
                 .eq("id", appraisal_id)
-                .eq("user_id", user_id)
-                .single()
-                .execute()
             )
+            if user_id:
+                q = q.eq("user_id", user_id)
+            res = q.single().execute()
             return res.data
         except Exception as exc:
             log.error("AppraisalRepository.get_appraisal failed: %s", exc)
             return None
 
-    def get_stats(self, *, user_id: str) -> dict[str, Any]:
+    def get_stats(self, *, user_id: str | None) -> dict[str, Any]:
         if self._db is None:
             log.warning("get_stats: Supabase admin client is None — returning empty stats")
             return {}
         try:
-            res = (
+            q = (
                 self._db.table("appraisals")
                 .select("status, decision, default_probability")
-                .eq("user_id", user_id)
-                .execute()
             )
+            if user_id:
+                q = q.eq("user_id", user_id)
+            res = q.execute()
             rows = res.data or []
             total = len(rows)
             done = [r for r in rows if r.get("status") == "DONE"]
