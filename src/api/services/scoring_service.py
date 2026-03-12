@@ -111,12 +111,14 @@ def _format_score_result(
     def _fmt_factors(raw: list[dict]) -> list[dict]:
         out = []
         for item in raw or []:
-            feat = item.get("feature", "")
+            # scorer returns "feature_name"; fall back to "feature" for backwards compat
+            feat = item.get("feature_name") or item.get("feature", "")
+            label = item.get("human_readable_name") or labels.get(feat, feat)
             sv = item.get("shap_value", 0.0)
             out.append(
                 {
                     "feature": feat,
-                    "label": labels.get(feat, feat),
+                    "label": label,
                     "shap_value": sv,
                     "direction": "RISK_DRIVER" if sv > 0 else "PROTECTIVE",
                 }

@@ -69,7 +69,43 @@ def get_job_store() -> JobStore:
 # ── Supabase JWT Auth ─────────────────────────────────────────────────────────
 
 def _decode_supabase_jwt(token: str) -> dict:
-    """Validate a Supabase JWT by calling admin.auth.get_user() — no JWT secret needed."""
+    """Validate a Supabase JWT.
+
+    Primary path: decode locally with python-jose using FINSIGHT_SUPABASE_JWT_SECRET.
+    This avoids any dependency on the Supabase admin client and eliminates 503s.
+    Fallback: call admin.auth.get_user() when the JWT secret is not configured.
+    """
+    jwt_secret = settings.supabase_jwt_secret
+    if jwt_secret:
+        try:
+            from jose import ExpiredSignatureError, JWTError
+            from jose import jwt as jose_jwt
+
+            payload = jose_jwt.decode(
+                token,
+                jwt_secret,
+                algorithms=["HS256"],
+                options={"verify_aud": False},
+            )
+            return {
+                "sub": str(payload.get("sub", "")),
+                "email": payload.get("email", ""),
+                "user_metadata": payload.get("user_metadata") or {},
+            }
+        except ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token has expired",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        except JWTError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=f"Token validation failed: {exc}",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+    # Fallback: admin API (used when JWT secret is not set in env)
     from src.database.supabase_client import get_supabase_admin_client
     admin = get_supabase_admin_client()
     if admin is None:

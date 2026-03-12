@@ -574,8 +574,14 @@ def _normalize_for_frontend(
     def _map_shap(f: dict) -> dict:
         direction_raw = f.get("direction", "")
         return {
-            "human_readable_name": f.get("label") or f.get("feature", ""),
-            "feature_name": f.get("feature"),
+            "human_readable_name": (
+                f.get("human_readable_name")
+                or f.get("label")
+                or f.get("feature_name")
+                or f.get("feature")
+                or ""
+            ),
+            "feature_name": f.get("feature_name") or f.get("feature"),
             "feature_value": None,
             "shap_value": float(f.get("shap_value") or 0.0),
             "direction": "risk" if direction_raw in ("RISK_DRIVER", "risk") else "protective",
