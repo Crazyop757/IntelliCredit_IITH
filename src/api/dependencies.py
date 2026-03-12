@@ -93,19 +93,17 @@ def _decode_supabase_jwt(token: str) -> dict:
                 "user_metadata": payload.get("user_metadata") or {},
             }
         except ExpiredSignatureError:
+            log.warning("JWT expired for token (first 20 chars): %s…", token[:20])
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token has expired",
                 headers={"WWW-Authenticate": "Bearer"},
             )
         except JWTError as exc:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=f"Token validation failed: {exc}",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+            log.warning("JWT local decode failed: %s (secret length=%d) — trying Supabase admin API", exc, len(jwt_secret))
+            # Fall through to admin API validation below
 
-    # Fallback: admin API (used when JWT secret is not set in env)
+    # Fallback: admin API (used when JWT secret is not set or local decode failed)
     from src.database.supabase_client import get_supabase_admin_client
     admin = get_supabase_admin_client()
     if admin is None:

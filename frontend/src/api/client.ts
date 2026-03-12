@@ -1,6 +1,7 @@
-import axios, { type AxiosError } from 'axios'
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import toast from 'react-hot-toast'
 import { useAuthStore } from '../store/authStore'
+import { supabase } from '../lib/supabase'
 
 const BASE_URL = (import.meta.env.VITE_API_URL as string) || 'http://localhost:8000/api/v1'
 const API_KEY = (import.meta.env.VITE_API_KEY as string) || 'dev-key-change-in-production'
@@ -62,7 +63,21 @@ client.interceptors.response.use(
         toast.error(detail)
       }
     } else if (error.response.status === 401) {
-      // Clear auth state and redirect to login
+      // Attempt to refresh the Supabase session before giving up
+      const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
+      if (!originalRequest._retry) {
+        originalRequest._retry = true
+        try {
+          const { data: refreshData } = await supabase.auth.refreshSession()
+          if (refreshData.session) {
+            useAuthStore.getState().setSession(refreshData.session)
+            originalRequest.headers['Authorization'] = `Bearer ${refreshData.session.access_token}`
+            return client.request(originalRequest)
+          }
+        } catch {
+          // refresh failed — fall through to clear auth
+        }
+      }
       useAuthStore.getState().clearAuth()
       toast.error('Session expired — please sign in again', { id: 'auth-error' })
       window.location.href = '/auth/login'
