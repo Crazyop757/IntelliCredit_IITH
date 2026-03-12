@@ -35,6 +35,7 @@ class APISettings(BaseSettings):
         "http://localhost:8000",
         "https://finsight-frontend.onrender.com",
         "https://huggingface.co",
+        "https://techbriny07-finsight.hf.space",
     ]
 
     # ── Server ─────────────────────────────────────────────────────────
