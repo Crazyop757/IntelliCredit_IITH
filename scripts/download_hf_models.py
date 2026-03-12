@@ -29,20 +29,29 @@ if _hf_token:
 
 import gc
 
-from transformers import (
-    AutoTokenizer,
-    AutoModelForTokenClassification,
-    AutoModelForSequenceClassification,
-)
+from transformers import AutoTokenizer
+
+# Model classes need torch — import with fallback
+try:
+    from transformers import (
+        AutoModelForTokenClassification,
+        AutoModelForSequenceClassification,
+    )
+    _MODELS_AVAILABLE = True
+except ImportError:
+    _MODELS_AVAILABLE = False
+    print("  ⚠ PyTorch not usable by transformers — downloading tokenizers only.")
 
 print("  → dslim/bert-base-NER …")
 AutoTokenizer.from_pretrained("dslim/bert-base-NER", cache_dir=str(CACHE_DIR), token=_hf_token)
-m = AutoModelForTokenClassification.from_pretrained("dslim/bert-base-NER", cache_dir=str(CACHE_DIR), token=_hf_token)
-del m; gc.collect()
+if _MODELS_AVAILABLE:
+    m = AutoModelForTokenClassification.from_pretrained("dslim/bert-base-NER", cache_dir=str(CACHE_DIR), token=_hf_token)
+    del m; gc.collect()
 
 print("  → ProsusAI/finbert …")
 AutoTokenizer.from_pretrained("ProsusAI/finbert", cache_dir=str(CACHE_DIR), token=_hf_token)
-m = AutoModelForSequenceClassification.from_pretrained("ProsusAI/finbert", cache_dir=str(CACHE_DIR), token=_hf_token)
-del m; gc.collect()
+if _MODELS_AVAILABLE:
+    m = AutoModelForSequenceClassification.from_pretrained("ProsusAI/finbert", cache_dir=str(CACHE_DIR), token=_hf_token)
+    del m; gc.collect()
 
 print("  ✓ Done.\n")

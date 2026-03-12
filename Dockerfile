@@ -45,7 +45,7 @@ COPY requirements.txt .
 # absent from python:3.11-slim; the GNN detector falls back to rule-based
 # scoring automatically when torch_geometric is missing.
 RUN pip install --no-cache-dir \
-    torch==2.2.2+cpu \
+    torch==2.5.1+cpu \
     --extra-index-url https://download.pytorch.org/whl/cpu
 RUN pip install --no-cache-dir -r requirements.txt
 
