@@ -16,6 +16,11 @@ import os
 import sys
 from pathlib import Path
 
+# Force UTF-8 output on Windows to avoid cp1252 encoding errors
+if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 CACHE_DIR = PROJECT_ROOT / "configs" / "model_cache"
 MODELS_DIR = PROJECT_ROOT / "models"
@@ -85,10 +90,52 @@ def ensure_gnn_model():
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
     try:
-        from src.gst.gnn_detector import CircularTradingDetector
+        import json
+        from src.gst.data_generator import GSTDataGenerator
+        from src.gst.graph_builder import TransactionGraphBuilder
+        from src.gst.gnn_detector import CircularTradingDetector, collect_fraud_gstins, GST_RAW_DIR
+
+        # Step 1: Generate synthetic GST data
+        GST_RAW_DIR.mkdir(parents=True, exist_ok=True)
+        gen = GSTDataGenerator()
+        companies_clean = ["COMP_A_RELIANCE", "COMP_B_MEDIUM"]
+        companies_fraud = ["COMP_C_FRAUD", "COMP_D_FRAUD2", "COMP_E_FRAUD3"]
+
+        for name in companies_clean:
+            if not (GST_RAW_DIR / f"{name}_gstr1.json").exists():
+                print(f"      Generating {name} (clean) …")
+                gen.generate_company_data(name, inject_fraud=False)
+        for name in companies_fraud:
+            if not (GST_RAW_DIR / f"{name}_gstr1.json").exists():
+                print(f"      Generating {name} (fraud) …")
+                gen.generate_company_data(name, inject_fraud=True)
+
+        # Step 2: Build transaction graph
+        builder = TransactionGraphBuilder()
+        all_data = {}
+        for company in companies_clean + companies_fraud:
+            all_data[company] = {
+                "gstr1":  json.load(open(GST_RAW_DIR / f"{company}_gstr1.json")),
+                "gstr2a": json.load(open(GST_RAW_DIR / f"{company}_gstr2a.json")),
+                "gstr3b": json.load(open(GST_RAW_DIR / f"{company}_gstr3b.json")),
+            }
+        graph = builder.build_graph(list(all_data.values()))
+        print(f"      Graph: {graph.number_of_nodes()} nodes, {graph.number_of_edges()} edges")
+
+        # Step 3: Collect fraud labels
+        fraud_gstins = collect_fraud_gstins(GST_RAW_DIR)
+        print(f"      Fraud GSTINs: {len(fraud_gstins)}")
+
+        # Step 4: Convert to PyG format + train
         detector = CircularTradingDetector()
-        detector.train_model()
-        print(f"      ✓ Saved → {pt_path}\n")
+        data, node_index = detector.convert_to_pyg_data(graph)
+        labels = detector.make_labels(node_index, fraud_gstins)
+        history = detector.train_model(data, labels, epochs=100, lr=0.01)
+
+        if history.get("used_fallback"):
+            print(f"      ⚠  GNN used fallback: {history.get('fallback_reason', 'unknown')}\n")
+        else:
+            print(f"      ✓ Saved → {pt_path}\n")
     except Exception as exc:
         print(f"      ⚠  Could not train GNN (non-fatal): {exc}\n")
 

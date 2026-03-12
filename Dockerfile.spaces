@@ -30,7 +30,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
     curl \
-    && rm -rf /var/lib/apt/lists/*
+    && curl --proto '=https' --tlsv1.2 -fsSL https://drop-sh.fullyjustified.net | sh \
+    && mv /root/.cargo/bin/tectonic /usr/local/bin/tectonic || true \
+    && rm -rf /var/lib/apt/lists/* /root/.cargo
 
 WORKDIR /app
 
@@ -55,15 +57,15 @@ COPY .env.example .env.example
 ENV TRANSFORMERS_CACHE=/app/configs/model_cache
 ENV HF_HOME=/app/configs/model_cache
 
+# Create data directories BEFORE model training (GNN needs data/raw/gst/)
+RUN mkdir -p data/raw/gst data/bronze data/silver data/gold outputs/cam_reports
+
 # Download HuggingFace models + train bootstrap ML models at build time
 # This bakes them into the image so startup is fast
 RUN python scripts/download_models.py
 
 # Copy built frontend from stage 1
 COPY --from=frontend-build /app/dist /app/frontend_dist
-
-# Create data directories
-RUN mkdir -p data/raw data/bronze data/silver data/gold outputs/cam_reports
 
 # HF Spaces requires port 7860
 ENV PORT=7860

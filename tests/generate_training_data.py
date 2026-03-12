@@ -27,8 +27,6 @@ import pandas as pd
 _ROOT = Path(__file__).resolve().parents[1]
 OUT = _ROOT / "data" / "silver" / "training_data.csv"
 
-np.random.seed(42)
-
 
 def make_sample(risk_level):
     """
@@ -149,35 +147,39 @@ def make_sample(risk_level):
     return s, label
 
 
-# ---------------------------------------------------------------------------
-# Generate 2000 samples with balanced classes
-# ---------------------------------------------------------------------------
+def main():
+    """Generate 2000 samples with balanced classes and save to CSV."""
+    np.random.seed(42)
 
-samples, labels = [], []
+    samples, labels = [], []
 
-for _ in range(600):   # HIGH RISK
-    s, l = make_sample('HIGH')
-    samples.append(s); labels.append(l)
+    for _ in range(600):   # HIGH RISK
+        s, l = make_sample('HIGH')
+        samples.append(s); labels.append(l)
 
-for _ in range(800):   # MEDIUM RISK (largest — hardest class)
-    s, l = make_sample('MEDIUM')
-    samples.append(s); labels.append(l)
+    for _ in range(800):   # MEDIUM RISK (largest — hardest class)
+        s, l = make_sample('MEDIUM')
+        samples.append(s); labels.append(l)
 
-for _ in range(600):   # LOW RISK
-    s, l = make_sample('LOW')
-    samples.append(s); labels.append(l)
+    for _ in range(600):   # LOW RISK
+        s, l = make_sample('LOW')
+        samples.append(s); labels.append(l)
 
-df = pd.DataFrame(samples)
-df['label'] = labels
+    df = pd.DataFrame(samples)
+    df['label'] = labels
 
-# Shuffle
-df = df.sample(frac=1, random_state=42).reset_index(drop=True)
+    # Shuffle
+    df = df.sample(frac=1, random_state=42).reset_index(drop=True)
 
-OUT.parent.mkdir(parents=True, exist_ok=True)
-df.to_csv(str(OUT), index=False)
+    OUT.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(str(OUT), index=False)
 
-print(f"Total samples: {len(df)}")
-print(f"Default rate: {df.label.mean():.1%}")
-print(f"Feature correlations with label:")
-print(df.corr(numeric_only=True)['label'].sort_values().to_string())
-print(f"\nSaved to {OUT}")
+    print(f"Total samples: {len(df)}")
+    print(f"Default rate: {df.label.mean():.1%}")
+    print(f"Feature correlations with label:")
+    print(df.corr(numeric_only=True)['label'].sort_values().to_string())
+    print(f"\nSaved to {OUT}")
+
+
+if __name__ == "__main__":
+    main()
