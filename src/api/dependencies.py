@@ -262,7 +262,6 @@ def validate_tectonic() -> bool:
             return True
     except (FileNotFoundError, subprocess.TimeoutExpired):
         pass
-    _component_health["tectonic"] = "missing"
     _tectonic_available = False
     log.warning("Tectonic not found — CAM PDF generation will be unavailable.")
     return False

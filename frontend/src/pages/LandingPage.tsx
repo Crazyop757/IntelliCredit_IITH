@@ -163,8 +163,6 @@ const STYLES = `
   .pipeline-row { flex-direction: column !important; align-items: center !important; }
   .pipeline-connector { display: none !important; }
   .ews-split { flex-direction: column !important; }
-  .stats-row { flex-wrap: wrap; }
-  .stats-row > div { flex: 1 1 50% !important; }
   .ticker-panel { display: none !important; }
 }
 `
@@ -214,13 +212,6 @@ const TICKER_LINES = [
   '\u2B24 REVENUE-GST MISMATCH \u2014 \u20B91.2Cr DELTA',
   '\u2B24 PROMOTER PLEDGE 68% \u2014 ELEVATED RISK',
   '\u2B24 SMA-2 CLASSIFICATION \u2014 NPA WATCH',
-]
-
-const STATS = [
-  { num: '\u20B92,400 Cr+', label: 'Credit Assessed' },
-  { num: '94.2%', label: 'Fraud Detection Accuracy' },
-  { num: '4.8 min', label: 'Avg. Appraisal Time' },
-  { num: '12 Models', label: 'AI/ML Signals' },
 ]
 
 const FEATURES = [
@@ -787,62 +778,6 @@ export default function LandingPage() {
             <FraudGraph />
             <Ticker />
           </div>
-        </div>
-      </section>
-
-      {/* ── STATS BAR ───────────────────────────────────────────── */}
-      <section
-        style={{
-          borderTop: '1px solid #1E293B',
-          borderBottom: '1px solid #1E293B',
-        }}
-      >
-        <div
-          className="stats-row"
-          style={{
-            maxWidth: 1200,
-            margin: '0 auto',
-            display: 'flex',
-          }}
-        >
-          {STATS.map((s, i) => (
-            <div
-              key={i}
-              className="stat-col"
-              style={{
-                flex: 1,
-                textAlign: 'center',
-                padding: '36px 20px',
-                borderRight: i < STATS.length - 1 ? '1px solid #1E293B' : 'none',
-                cursor: 'default',
-              }}
-            >
-              <div
-                className="stat-num"
-                style={{
-                  fontSize: 42,
-                  fontWeight: 800,
-                  color: '#fff',
-                  transition: 'color 0.2s',
-                  letterSpacing: -1,
-                }}
-              >
-                {s.num}
-              </div>
-              <div
-                style={{
-                  fontSize: 11,
-                  fontWeight: 800,
-                  textTransform: 'uppercase' as const,
-                  letterSpacing: '0.12em',
-                  color: '#64748B',
-                  marginTop: 6,
-                }}
-              >
-                {s.label}
-              </div>
-            </div>
-          ))}
         </div>
       </section>
 

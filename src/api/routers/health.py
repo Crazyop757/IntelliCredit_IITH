@@ -31,7 +31,6 @@ async def health() -> dict[str, Any]:
         "bert_ner": "unknown",
         "lightgbm": "unknown",
         "gnn": "unknown",
-        "tectonic": "unknown",
         "anthropic_api": "unknown",
         "tavily_api": "unknown",
         "delta_lake": "unknown",
