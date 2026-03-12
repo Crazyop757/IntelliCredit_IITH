@@ -168,9 +168,16 @@ async def download_cam(
     if not file_path.exists():
         raise HTTPException(status.HTTP_404_NOT_FOUND, "CAM file not found on server")
 
+    suffix = file_path.suffix.lower()
+    media_type = (
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        if suffix == ".docx"
+        else "application/pdf"
+    )
+
     return FileResponse(
         path=str(file_path),
-        media_type="application/pdf",
+        media_type=media_type,
         filename=file_path.name,
     )
 

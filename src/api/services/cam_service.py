@@ -21,24 +21,43 @@ def generate_cam(
     output_path: Path | None = None,
 ) -> Path:
     """
-    Generate a CAM PDF document (via LaTeX) and return the output path.
+    Generate a CAM document and return the output path.
+    Tries PDF via LaTeX (tectonic/pdflatex) first; falls back to .docx if no
+    LaTeX compiler is available.
     """
-    from src.cam.cam_latex_generator import CAMLatexGenerator
+    safe_name = (company_data.get("name") or "company").replace(" ", "_")[:30]
+    uid = uuid.uuid4().hex[:8]
 
     if output_path is None:
-        safe_name = (company_data.get("name") or "company").replace(" ", "_")[:30]
-        uid = uuid.uuid4().hex[:8]
         output_path = settings.outputs_dir / f"CAM_{safe_name}_{uid}.pdf"
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    gen = CAMLatexGenerator()
-    result_path = gen.generate_cam(
+    # ── Try LaTeX → PDF ──────────────────────────────────────────────
+    try:
+        from src.cam.cam_latex_generator import CAMLatexGenerator
+        gen = CAMLatexGenerator()
+        result_path = gen.generate_cam(
+            company_data=company_data,
+            scoring_result=scoring_result,
+            research_report=research_report,
+            five_cs_text=five_cs_text,
+            output_path=output_path,
+        )
+        return Path(result_path)
+    except RuntimeError as exc:
+        log.warning("LaTeX PDF generation failed (%s); falling back to .docx", exc)
+
+    # ── Fallback: python-docx ────────────────────────────────────────
+    from src.cam.cam_generator import CAMGenerator
+    docx_path = output_path.with_suffix(".docx")
+    gen_docx = CAMGenerator()
+    result_path = gen_docx.generate_cam(
         company_data=company_data,
         scoring_result=scoring_result,
         research_report=research_report,
         five_cs_text=five_cs_text,
-        output_path=output_path,
+        output_path=docx_path,
     )
     return Path(result_path)
 
