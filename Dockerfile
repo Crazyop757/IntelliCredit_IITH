@@ -39,7 +39,15 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
+# ── Download HF models BEFORE copying src/ so this layer is cached
+#    independently of source-code changes. Cache is only busted when
+#    requirements.txt changes (new transformers version etc.)
+COPY scripts/download_hf_models.py scripts/download_hf_models.py
+ENV TRANSFORMERS_CACHE=/app/configs/model_cache
+ENV HF_HOME=/app/configs/model_cache
+RUN python scripts/download_hf_models.py
+
+# ── Now copy application code (changes here won't bust the model cache)
 COPY src/ src/
 COPY models/pipeline_models.py models/pipeline_models.py
 COPY scripts/ scripts/
@@ -48,13 +56,6 @@ COPY .env.example .env.example
 
 # Generate a rule-based GNN placeholder (no .pt file needed in repo)
 RUN python scripts/create_placeholder_gnn.py
-
-# Download HuggingFace models at build time so they are baked into the image
-RUN python scripts/download_models.py
-
-# Point HuggingFace libraries to the baked-in cache at runtime
-ENV TRANSFORMERS_CACHE=/app/configs/model_cache
-ENV HF_HOME=/app/configs/model_cache
 
 # Copy built frontend from stage 1
 COPY --from=frontend-build /app/dist /app/frontend_dist
