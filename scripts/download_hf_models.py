@@ -27,31 +27,42 @@ _hf_token = os.environ.get("HF_TOKEN") or None
 if _hf_token:
     print("  ✓ HF_TOKEN detected — using authenticated downloads.")
 
-import gc
-
-from transformers import AutoTokenizer
-
-# Model classes need torch — import with fallback
 try:
-    from transformers import (
-        AutoModelForTokenClassification,
-        AutoModelForSequenceClassification,
-    )
-    _MODELS_AVAILABLE = True
-except ImportError:
-    _MODELS_AVAILABLE = False
-    print("  ⚠ PyTorch not usable by transformers — downloading tokenizers only.")
+    import gc
+    from transformers import AutoTokenizer
 
-print("  → dslim/bert-base-NER …")
-AutoTokenizer.from_pretrained("dslim/bert-base-NER", cache_dir=str(CACHE_DIR), token=_hf_token)
-if _MODELS_AVAILABLE:
-    m = AutoModelForTokenClassification.from_pretrained("dslim/bert-base-NER", cache_dir=str(CACHE_DIR), token=_hf_token)
-    del m; gc.collect()
+    # Model classes need torch — import with fallback
+    try:
+        from transformers import (
+            AutoModelForTokenClassification,
+            AutoModelForSequenceClassification,
+        )
+        _MODELS_AVAILABLE = True
+    except ImportError:
+        _MODELS_AVAILABLE = False
+        print("  ⚠ Model auto-classes unavailable — downloading tokenizers only.")
 
-print("  → ProsusAI/finbert …")
-AutoTokenizer.from_pretrained("ProsusAI/finbert", cache_dir=str(CACHE_DIR), token=_hf_token)
-if _MODELS_AVAILABLE:
-    m = AutoModelForSequenceClassification.from_pretrained("ProsusAI/finbert", cache_dir=str(CACHE_DIR), token=_hf_token)
-    del m; gc.collect()
+    print("  → dslim/bert-base-NER …")
+    AutoTokenizer.from_pretrained("dslim/bert-base-NER", cache_dir=str(CACHE_DIR), token=_hf_token)
+    if _MODELS_AVAILABLE:
+        m = AutoModelForTokenClassification.from_pretrained(
+            "dslim/bert-base-NER", cache_dir=str(CACHE_DIR), token=_hf_token
+        )
+        del m; gc.collect()
 
-print("  ✓ Done.\n")
+    print("  → ProsusAI/finbert …")
+    AutoTokenizer.from_pretrained("ProsusAI/finbert", cache_dir=str(CACHE_DIR), token=_hf_token)
+    if _MODELS_AVAILABLE:
+        m = AutoModelForSequenceClassification.from_pretrained(
+            "ProsusAI/finbert", cache_dir=str(CACHE_DIR), token=_hf_token
+        )
+        del m; gc.collect()
+
+    print("  ✓ Done.\n")
+
+except Exception as exc:
+    # NEVER let a model-download failure break the Docker build.
+    # Models will be fetched lazily at runtime instead.
+    print(f"  ⚠ Model download failed ({type(exc).__name__}: {exc})")
+    print("    Models will be downloaded on first request at runtime.")
+    sys.exit(0)
